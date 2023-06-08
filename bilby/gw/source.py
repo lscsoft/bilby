@@ -1079,7 +1079,7 @@ def _base_waveform_frequency_sequence(
     catch_waveform_errors = waveform_kwargs.pop('catch_waveform_errors')
 
     waveform_dictionary = set_waveform_dictionary(waveform_kwargs, lambda_1, lambda_2)
-    approximant = lalsim_GetApproximantFromString(waveform_approximant)
+    approximant = lalsim_GetApproximantFromString(approximant)
 
     luminosity_distance = luminosity_distance * 1e6 * utils.parsec
     mass_1 = mass_1 * utils.solar_mass
