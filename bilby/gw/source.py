@@ -511,12 +511,14 @@ def set_waveform_dictionary(waveform_kwargs, lambda_1=0, lambda_2=0):
 
     for key in list(waveform_kwargs.keys()).copy():
         func = getattr(lalsim, f"SimInspiralWaveformParamsInsert{key}", None)
+        if func is None:
+            continue
         value = waveform_kwargs.pop(key)
         if func is not None and value is not None:
             func(waveform_dictionary, value)
 
-    if ('mode_array' in waveform_kwargs) and waveform_kwargs['mode_array'] is not None:
-        mode_array = waveform_kwargs.pop('mode_array')
+    mode_array = waveform_kwargs.pop("mode_array", None)
+    if mode_array is not None:
         mode_array_lal = lalsim.SimInspiralCreateModeArray()
         for mode in mode_array:
             lalsim.SimInspiralModeArrayActivateMode(mode_array_lal, mode[0], mode[1])
