@@ -6,8 +6,6 @@ from .conversion import bilby_to_lalsimulation_spins
 from .utils import (lalsim_GetApproximantFromString,
                     lalsim_SimInspiralFD,
                     lalsim_SimInspiralChooseFDWaveform,
-                    lalsim_SimInspiralWaveformParamsInsertTidalLambda1,
-                    lalsim_SimInspiralWaveformParamsInsertTidalLambda2,
                     lalsim_SimInspiralChooseFDWaveformSequence)
 
 
@@ -571,7 +569,6 @@ def _base_lal_cbc_fd_waveform(
     =======
     dict: A dictionary with the plus and cross polarisation strain modes
     """
-    import lal
     import lalsimulation as lalsim
 
     waveform_approximant = waveform_kwargs.pop('waveform_approximant')
@@ -582,7 +579,6 @@ def _base_lal_cbc_fd_waveform(
     pn_amplitude_order = waveform_kwargs['pn_amplitude_order']
 
     waveform_dictionary = set_waveform_dictionary(waveform_kwargs, lambda_1, lambda_2)
-
     approximant = lalsim_GetApproximantFromString(waveform_approximant)
 
     if pn_amplitude_order != 0:
@@ -1077,14 +1073,13 @@ def _base_waveform_frequency_sequence(
         Dict containing plus and cross modes evaluated at the linear and
         quadratic frequency nodes.
     """
-    import lalsimulation as lalsim
-
     frequencies = waveform_kwargs.pop('frequencies')
     reference_frequency = waveform_kwargs.pop('reference_frequency')
-    approximant = _get_lalsim_approximant(waveform_kwargs.pop('waveform_approximant'))
+    approximant = waveform_kwargs.pop('waveform_approximant')
     catch_waveform_errors = waveform_kwargs.pop('catch_waveform_errors')
 
     waveform_dictionary = set_waveform_dictionary(waveform_kwargs, lambda_1, lambda_2)
+    approximant = lalsim_GetApproximantFromString(waveform_approximant)
 
     luminosity_distance = luminosity_distance * 1e6 * utils.parsec
     mass_1 = mass_1 * utils.solar_mass
