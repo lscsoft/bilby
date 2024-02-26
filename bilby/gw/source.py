@@ -838,19 +838,17 @@ def _base_roq_waveform(
     if 'frequency_nodes' not in waveform_arguments:
         size_linear = len(waveform_arguments['frequency_nodes_linear'])
         frequency_nodes_combined = np.hstack(
-            (waveform_arguments['frequency_nodes_linear'],
-             waveform_arguments['frequency_nodes_quadratic'])
+            (waveform_arguments.pop('frequency_nodes_linear'),
+             waveform_arguments.pop('frequency_nodes_quadratic'))
         )
         frequency_nodes_unique, original_indices = np.unique(
             frequency_nodes_combined, return_inverse=True
         )
         linear_indices = original_indices[:size_linear]
         quadratic_indices = original_indices[size_linear:]
-        waveform_arguments['frequency_nodes'] = frequency_nodes_unique
-        waveform_arguments['linear_indices'] = linear_indices
-        waveform_arguments['quadratic_indices'] = quadratic_indices
-
-    waveform_arguments['frequencies'] = waveform_arguments['frequency_nodes']
+        waveform_arguments['frequencies'] = frequency_nodes_unique
+    else:
+        waveform_arguments['frequencies'] = waveform_arguments.pop('frequency_nodes')
     waveform_polarizations = _base_waveform_frequency_sequence(
         frequency_array=frequency_array, mass_1=mass_1, mass_2=mass_2,
         luminosity_distance=luminosity_distance, theta_jn=theta_jn, phase=phase,
@@ -859,12 +857,12 @@ def _base_roq_waveform(
 
     return {
         'linear': {
-            'plus': waveform_polarizations['plus'][waveform_arguments['linear_indices']],
-            'cross': waveform_polarizations['cross'][waveform_arguments['linear_indices']]
+            'plus': waveform_polarizations['plus'][linear_indices],
+            'cross': waveform_polarizations['cross'][linear_indices]
         },
         'quadratic': {
-            'plus': waveform_polarizations['plus'][waveform_arguments['quadratic_indices']],
-            'cross': waveform_polarizations['cross'][waveform_arguments['quadratic_indices']]
+            'plus': waveform_polarizations['plus'][quadratic_indices],
+            'cross': waveform_polarizations['cross'][quadratic_indices]
         }
     }
 
