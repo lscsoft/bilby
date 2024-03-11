@@ -9,6 +9,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 from bilby.core.likelihood import PoissonLikelihood
 from bilby.core.prior import LogUniform
+from bilby.core.utils.random import rng, seed
+
+# Sets seed of bilby's generator "rng" to "123" to ensure reproducibility
+seed(123)
 
 # A few simple setup steps
 label = "radioactive_decay"
@@ -61,7 +65,7 @@ delta_t = np.diff(time)
 
 rates = decay_rate(delta_t, **injection_parameters)
 # get radioactive counts
-counts = np.random.poisson(rates)
+counts = rng.poisson(rates)
 theoretical = decay_rate(delta_t, **injection_parameters)
 
 # We quickly plot the data to check it looks sensible

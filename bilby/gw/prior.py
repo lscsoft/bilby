@@ -1385,10 +1385,10 @@ class HealPixMapPriorDist(BaseJointPriorDist):
         """
         Method that builds the inverse cdf of the P(pixel) distribution for rescaling
         """
-        from scipy.integrate import cumtrapz
+        from scipy.integrate import cumulative_trapezoid
         yy = self._all_interped(self.pix_xx)
         yy /= np.trapz(yy, self.pix_xx)
-        YY = cumtrapz(yy, self.pix_xx, initial=0)
+        YY = cumulative_trapezoid(yy, self.pix_xx, initial=0)
         YY[-1] = 1
         self.inverse_cdf = interp1d(x=YY, y=self.pix_xx, bounds_error=True)
 

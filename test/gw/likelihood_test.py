@@ -3,6 +3,7 @@ import unittest
 import tempfile
 from itertools import product
 from parameterized import parameterized
+import pytest
 
 import h5py
 import numpy as np
@@ -273,6 +274,7 @@ class TestGWTransient(unittest.TestCase):
         )
 
 
+@pytest.mark.requires_roqs
 class TestROQLikelihood(unittest.TestCase):
     def setUp(self):
         self.duration = 4
@@ -538,6 +540,7 @@ class TestROQLikelihood(unittest.TestCase):
             )
 
 
+@pytest.mark.requires_roqs
 class TestRescaledROQLikelihood(unittest.TestCase):
     def test_rescaling(self):
 
@@ -612,6 +615,7 @@ class TestRescaledROQLikelihood(unittest.TestCase):
         )
 
 
+@pytest.mark.requires_roqs
 class TestROQLikelihoodHDF5(unittest.TestCase):
     """
     Test ROQ likelihood constructed from .hdf5 basis
@@ -846,6 +850,7 @@ class TestROQLikelihoodHDF5(unittest.TestCase):
             self.assertLess(np.abs(llr - llr_roq), max_llr_error)
 
 
+@pytest.mark.requires_roqs
 class TestCreateROQLikelihood(unittest.TestCase):
     """
     Test if ROQ likelihood is constructed without any errors from .hdf5 or .npy basis
@@ -966,6 +971,7 @@ class TestCreateROQLikelihood(unittest.TestCase):
         )
 
 
+@pytest.mark.requires_roqs
 class TestInOutROQWeights(unittest.TestCase):
 
     @parameterized.expand(['npz', 'hdf5'])

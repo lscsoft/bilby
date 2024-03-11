@@ -4,6 +4,10 @@ Example script which produces posterior samples of ra and dec and generates a
 skymap
 """
 import bilby
+from bilby.core.utils.random import seed
+
+# Sets seed of bilby's generator "rng" to "123" to ensure reproducibility
+seed(123)
 
 duration = 4
 sampling_frequency = 1024

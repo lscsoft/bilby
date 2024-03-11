@@ -168,14 +168,14 @@ class Prior(object):
 
     def cdf(self, val):
         """ Generic method to calculate CDF, can be overwritten in subclass """
-        from scipy.integrate import cumtrapz
+        from scipy.integrate import cumulative_trapezoid
         if np.any(np.isinf([self.minimum, self.maximum])):
             raise ValueError(
                 "Unable to use the generic CDF calculation for priors with"
                 "infinite support")
         x = np.linspace(self.minimum, self.maximum, 1000)
         pdf = self.prob(x)
-        cdf = cumtrapz(pdf, x, initial=0)
+        cdf = cumulative_trapezoid(pdf, x, initial=0)
         interp = interp1d(x, cdf, assume_sorted=True, bounds_error=False,
                           fill_value=(0, 1))
         return interp(val)

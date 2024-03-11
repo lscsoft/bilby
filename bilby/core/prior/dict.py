@@ -510,14 +510,14 @@ class PriorDict(dict):
         sample: dict
             Dictionary of the samples of which we want to have the probability of
         kwargs:
-            The keyword arguments are passed directly to `np.product`
+            The keyword arguments are passed directly to `np.prod`
 
         Returns
         =======
         float: Joint probability of all individual sample probabilities
 
         """
-        prob = np.product([self[key].prob(sample[key]) for key in sample], **kwargs)
+        prob = np.prod([self[key].prob(sample[key]) for key in sample], **kwargs)
 
         return self.check_prob(sample, prob)
 
@@ -770,7 +770,7 @@ class ConditionalPriorDict(PriorDict):
         sample: dict
             Dictionary of the samples of which we want to have the probability of
         kwargs:
-            The keyword arguments are passed directly to `np.product`
+            The keyword arguments are passed directly to `np.prod`
 
         Returns
         =======
@@ -782,7 +782,7 @@ class ConditionalPriorDict(PriorDict):
             self[key].prob(sample[key], **self.get_required_variables(key))
             for key in sample
         ]
-        prob = np.product(res, **kwargs)
+        prob = np.prod(res, **kwargs)
         return self.check_prob(sample, prob)
 
     def ln_prob(self, sample, axis=None):

@@ -205,7 +205,7 @@ def gwsignal_binary_black_hole(frequency_array, mass_1, mass_2, luminosity_dista
             ]
             if EDOM:
                 failed_parameters = dict(mass_1=mass_1, mass_2=mass_2,
-                                         spin_1=(spin_1x, spin_2y, spin_1z),
+                                         spin_1=(spin_1x, spin_1y, spin_1z),
                                          spin_2=(spin_2x, spin_2y, spin_2z),
                                          luminosity_distance=luminosity_distance,
                                          iota=iota, phase=phase,
@@ -614,7 +614,7 @@ def _base_lal_cbc_fd_waveform(
             EDOM = (e.args[0] == 'Internal function call failed: Input domain error')
             if EDOM:
                 failed_parameters = dict(mass_1=mass_1, mass_2=mass_2,
-                                         spin_1=(spin_1x, spin_2y, spin_1z),
+                                         spin_1=(spin_1x, spin_1y, spin_1z),
                                          spin_2=(spin_2x, spin_2y, spin_2z),
                                          luminosity_distance=luminosity_distance,
                                          iota=iota, phase=phase,
@@ -1124,7 +1124,7 @@ def _base_waveform_frequency_sequence(
             EDOM = (e.args[0] == 'Internal function call failed: Input domain error')
             if EDOM:
                 failed_parameters = dict(mass_1=mass_1, mass_2=mass_2,
-                                         spin_1=(spin_1x, spin_2y, spin_1z),
+                                         spin_1=(spin_1x, spin_1y, spin_1z),
                                          spin_2=(spin_2x, spin_2y, spin_2z),
                                          luminosity_distance=luminosity_distance,
                                          iota=iota, phase=phase)

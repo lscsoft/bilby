@@ -754,10 +754,10 @@ class NormalizingFlowProposal(DensityEstimateProposal):
 
     @staticmethod
     def check_dependencies(warn=True):
-        if importlib.util.find_spec("nflows") is None:
+        if importlib.util.find_spec("glasflow") is None:
             if warn:
                 logger.warning(
-                    "Unable to utilise NormalizingFlowProposal as nflows is not installed"
+                    "Unable to utilise NormalizingFlowProposal as glasflow is not installed"
                 )
             return False
         else:

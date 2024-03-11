@@ -20,6 +20,7 @@ dependencies:
   - dill
   - black
   - pytest-cov
+  - pytest-requires
   - arviz
   - parameterized
   - scikit-image
@@ -65,8 +66,8 @@ dependencies:
   - jupyter
   - nbconvert
   - twine
+  - glasflow
   - pip:
     - autodoc
     - ipykernel
     - build
-    - nflows

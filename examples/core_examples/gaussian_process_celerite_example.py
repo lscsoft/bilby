@@ -5,6 +5,10 @@ import celerite.terms
 import matplotlib.pyplot as plt
 import numpy as np
 from bilby.core.prior import Uniform
+from bilby.core.utils.random import rng, seed
+
+# sets seed of bilby's generator "rng" to "123"
+seed(123)
 
 # In this example we show how we can use the `celerite` package within `bilby`.
 # We begin by synthesizing some data and then use a simple Gaussian Process
@@ -44,9 +48,8 @@ def linear_function(x, a, b):
 
 # For the data creation, we leave a gap in the middle of the time series
 # to see how the Gaussian Process model can interpolate the data.
-# We fix the seed to ensure reproducibility.
+# The seed has been fixed to ensure reproducibility (see line 11)
 
-np.random.seed(42)
 times = np.linspace(0, 40, 100)
 times = np.append(times, np.linspace(60, 100, 100))
 dt = times[1] - times[0]
@@ -56,7 +59,7 @@ ys = (
     amplitude
     * np.sin(2 * np.pi * times / period)
     * np.exp(-((times - 50) ** 2) / 2 / width**2)
-    + np.random.normal(scale=jitter, size=len(times))
+    + rng.normal(scale=jitter, size=len(times))
     + linear_function(x=times, a=slope, b=offset)
 )
 
@@ -184,7 +187,7 @@ plt.plot(x, trend, color="green", label="Mean")
 
 # Plot the mean model for ten other posterior samples.
 samples = [
-    result.posterior.iloc[np.random.randint(len(result.posterior))] for _ in range(10)
+    result.posterior.iloc[rng.integers(len(result.posterior))] for _ in range(10)
 ]
 for sample in samples:
     likelihood.set_parameters(sample)

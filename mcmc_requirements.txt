@@ -1,2 +1,2 @@
 scikit-learn
-nflows
+glasflow

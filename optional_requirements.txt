@@ -1,3 +1,4 @@
 celerite
 george
 plotly
+pytest-requires

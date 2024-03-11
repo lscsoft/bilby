@@ -1,5 +1,18 @@
 # All notable changes will be documented in this file
 
+## [2.2.3] 2024-02-24
+Version 2.2.3 release of Bilby
+
+This is a bugfix release 
+
+There are also a number of testing/infrastructure updates.
+
+### Changes
+- Fix a bug when the specified maximum frequency is too low for the multibanding likelihood (!1279)
+- Allow the `DirichletElement` prior to be pickled (!1312)
+- Add the ability to change the pool size when resuming a `dynesty` job (!1315)
+- Fix how the random seed is passed to `dynesty` (!1319)
+
 ## [2.2.2] 2023-11-29
 Version 2.2.2 release of Bilby
 

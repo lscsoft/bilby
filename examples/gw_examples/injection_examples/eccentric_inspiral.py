@@ -10,6 +10,10 @@ Lower et al. (2018) -> arXiv:1806.05350.
 
 import bilby
 import numpy as np
+from bilby.core.utils.random import seed
+
+# Sets seed of bilby's generator "rng" to "123" to ensure reproducibility
+seed(123)
 
 duration = 64
 sampling_frequency = 256
@@ -18,8 +22,6 @@ outdir = "outdir"
 label = "eccentric_GW150914"
 bilby.core.utils.setup_logger(outdir=outdir, label=label)
 
-# Set up a random seed for result reproducibility.
-np.random.seed(150914)
 
 injection_parameters = dict(
     mass_1=35.0,

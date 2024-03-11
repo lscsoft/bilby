@@ -162,11 +162,11 @@ class Interped(Prior):
         self._initialize_attributes()
 
     def _initialize_attributes(self):
-        from scipy.integrate import cumtrapz
+        from scipy.integrate import cumulative_trapezoid
         if np.trapz(self._yy, self.xx) != 1:
             logger.debug('Supplied PDF for {} is not normalised, normalising.'.format(self.name))
         self._yy /= np.trapz(self._yy, self.xx)
-        self.YY = cumtrapz(self._yy, self.xx, initial=0)
+        self.YY = cumulative_trapezoid(self._yy, self.xx, initial=0)
         # Need last element of cumulative distribution to be exactly one.
         self.YY[-1] = 1
         self.probability_density = interp1d(x=self.xx, y=self._yy, bounds_error=False, fill_value=0)

@@ -1,17 +1,17 @@
 import torch
-from nflows.distributions.normal import StandardNormal
-from nflows.flows.base import Flow
-from nflows.nn import nets as nets
-from nflows.transforms import (
+from glasflow.nflows.distributions.normal import StandardNormal
+from glasflow.nflows.flows.base import Flow
+from glasflow.nflows.nn import nets as nets
+from glasflow.nflows.transforms import (
     CompositeTransform,
     MaskedAffineAutoregressiveTransform,
     RandomPermutation,
 )
-from nflows.transforms.coupling import (
+from glasflow.nflows.transforms.coupling import (
     AdditiveCouplingTransform,
     AffineCouplingTransform,
 )
-from nflows.transforms.normalization import BatchNorm
+from glasflow.nflows.transforms.normalization import BatchNorm
 from torch.nn import functional as F
 
 # Turn off parallelism

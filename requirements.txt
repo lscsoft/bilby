@@ -3,7 +3,7 @@ dynesty>=2.0.1
 emcee
 corner
 numpy
-matplotlib<3.8.0
+matplotlib
 scipy>=1.5
 pandas
 dill
