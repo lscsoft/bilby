@@ -4,7 +4,10 @@ Tutorial to demonstrate running parameter estimation on a sine gaussian
 injected signal.
 """
 import bilby
-import numpy as np
+from bilby.core.utils.random import seed
+
+# Sets seed of bilby's generator "rng" to "123" to ensure reproducibility
+seed(123)
 
 # Set the duration and sampling frequency of the data segment that we're going
 # to inject the signal into
@@ -16,8 +19,6 @@ outdir = "outdir"
 label = "sine_gaussian"
 bilby.core.utils.setup_logger(outdir=outdir, label=label)
 
-# Set up a random seed for result reproducibility.  This is optional!
-np.random.seed(170801)
 
 # We are going to inject a sine gaussian waveform.  We first establish a
 # dictionary of parameters that includes all of the different waveform

@@ -8,7 +8,10 @@ initial and more complex likelihoods.
 
 import bilby
 import matplotlib.pyplot as plt
-import numpy as np
+from bilby.core.utils.random import seed
+
+# Sets seed of bilby's generator "rng" to "123" to ensure reproducibility
+seed(123)
 
 
 def make_comparison_histograms(result_1, result_2):
@@ -38,8 +41,6 @@ def make_comparison_histograms(result_1, result_2):
 
 def main():
     outdir = "outdir"
-
-    np.random.seed(170808)
 
     duration = 4
     sampling_frequency = 1024

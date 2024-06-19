@@ -9,7 +9,11 @@ from bilby.core.prior import Uniform
 from bilby.core.result import make_pp_plot
 from bilby.core.sampler import run_sampler
 from bilby.core.utils import check_directory_exists_and_if_not_mkdir
+from bilby.core.utils.random import rng, seed
 from bilby.hyper.likelihood import HyperparameterLikelihood
+
+# Sets seed of bilby's generator "rng" to "123" to ensure reproducibility
+seed(123)
 
 outdir = "outdir"
 check_directory_exists_and_if_not_mkdir(outdir)
@@ -35,11 +39,11 @@ fig2, ax2 = plt.subplots()
 # Make the sample sets
 results = list()
 for i in range(Nevents):
-    c0 = np.random.normal(true_mu_c0, true_sigma_c0)
-    c1 = np.random.uniform(-1, 1)
+    c0 = rng.normal(true_mu_c0, true_sigma_c0)
+    c1 = rng.uniform(-1, 1)
     injection_parameters = dict(c0=c0, c1=c1)
 
-    data = model(x, **injection_parameters) + np.random.normal(0, sigma, N)
+    data = model(x, **injection_parameters) + rng.normal(0, sigma, N)
     line = ax1.plot(x, data, "-x", label=labels[i])
 
     likelihood = GaussianLikelihood(x, data, model, sigma)
