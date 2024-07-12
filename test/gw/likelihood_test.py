@@ -361,7 +361,6 @@ class TestROQLikelihood(unittest.TestCase):
                 frequency_nodes_linear=fnodes_linear,
                 frequency_nodes_quadratic=fnodes_quadratic,
                 reference_frequency=20.0,
-                minimum_frequency=20.0,
                 waveform_approximant="IMRPhenomPv2",
             ),
         )
@@ -599,7 +598,6 @@ class TestRescaledROQLikelihood(unittest.TestCase):
                 frequency_nodes_linear=fnodes_linear,
                 frequency_nodes_quadratic=fnodes_quadratic,
                 reference_frequency=20.0,
-                minimum_frequency=20.0,
                 waveform_approximant="IMRPhenomPv2",
             ),
         )
