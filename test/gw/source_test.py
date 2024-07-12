@@ -344,13 +344,12 @@ class TestBBHfreqseq(unittest.TestCase):
             theta_jn=0.3,
             phase=0.0
         )
-        minimum_frequency = 20.0
+        self.minimum_frequency = 20.0
         self.frequency_array = bilby.core.utils.create_frequency_series(2048, 8)
         self.full_frequencies_to_sequence = self.frequency_array >= minimum_frequency
         self.waveform_kwargs = dict(
             waveform_approximant="IMRPhenomHM",
             reference_frequency=50.0,
-            minimum_frequency=minimum_frequency,
             catch_waveform_errors=True,
             frequencies=self.frequency_array[self.full_frequencies_to_sequence]
         )
@@ -362,6 +361,7 @@ class TestBBHfreqseq(unittest.TestCase):
         del self.waveform_kwargs
         del self.frequency_array
         del self.bad_parameters
+        del self.minimum_frequency
 
     def test_valid_parameters(self):
         self.parameters.update(self.waveform_kwargs)
@@ -395,7 +395,7 @@ class TestBBHfreqseq(unittest.TestCase):
             self.frequency_array, **self.parameters
         )
         lalbbh = bilby.gw.source.lal_binary_black_hole(
-            self.frequency_array, **self.parameters
+            self.frequency_array, minimum_frequency=self.minimum_frequency, **self.parameters
         )
         self.assertEqual(freqseq.keys(), lalbbh.keys())
         for mode in freqseq:
@@ -411,7 +411,7 @@ class TestBBHfreqseq(unittest.TestCase):
             self.frequency_array, **parameters
         )
         lalbbh = bilby.gw.source.lal_binary_black_hole(
-            self.frequency_array, **parameters
+            self.frequency_array, minimum_frequency=self.minimum_frequency, **self.parameters
         )
         self.assertEqual(freqseq.keys(), lalbbh.keys())
         for mode in freqseq:
@@ -429,7 +429,7 @@ class TestBBHfreqseq(unittest.TestCase):
             self.frequency_array, **parameters
         )
         lalbbh = bilby.gw.source.lal_binary_black_hole(
-            self.frequency_array, **parameters
+            self.frequency_array, minimum_frequency=self.minimum_frequency, **self.parameters
         )
         self.assertEqual(freqseq.keys(), lalbbh.keys())
         for mode in freqseq:
@@ -455,13 +455,12 @@ class TestBNSfreqseq(unittest.TestCase):
             lambda_1=1000.0,
             lambda_2=1000.0
         )
-        minimum_frequency = 50.0
+        self.minimum_frequency = 50.0
         self.frequency_array = bilby.core.utils.create_frequency_series(2048, 16)
         self.full_frequencies_to_sequence = self.frequency_array >= minimum_frequency
         self.waveform_kwargs = dict(
             waveform_approximant="IMRPhenomPv2_NRTidal",
             reference_frequency=50.0,
-            minimum_frequency=minimum_frequency,
             frequencies=self.frequency_array[self.full_frequencies_to_sequence]
         )
 
@@ -469,6 +468,7 @@ class TestBNSfreqseq(unittest.TestCase):
         del self.parameters
         del self.waveform_kwargs
         del self.frequency_array
+        del self.minimum_frequency
 
     def test_with_valid_parameters(self):
         self.parameters.update(self.waveform_kwargs)
@@ -494,7 +494,7 @@ class TestBNSfreqseq(unittest.TestCase):
             self.frequency_array, **self.parameters
         )
         lalbns = bilby.gw.source.lal_binary_neutron_star(
-            self.frequency_array, **self.parameters
+            self.frequency_array, minimum_frequency=self.minimum_frequency, **self.parameters
         )
         self.assertEqual(freqseq.keys(), lalbns.keys())
         for mode in freqseq:
