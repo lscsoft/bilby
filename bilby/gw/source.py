@@ -719,7 +719,7 @@ def lal_binary_black_hole_relative_binning(
     waveform_kwargs.update(kwargs)
 
     if fiducial == 1:
-        del waveform_kwargs["frequency_bin_edges"]
+        _ = waveform_kwargs.pop("frequency_bin_edges", None)
         return _base_lal_cbc_fd_waveform(
             frequency_array=frequency_array, mass_1=mass_1, mass_2=mass_2,
             luminosity_distance=luminosity_distance, theta_jn=theta_jn, phase=phase,
@@ -727,7 +727,8 @@ def lal_binary_black_hole_relative_binning(
             phi_12=phi_12, lambda_1=0.0, lambda_2=0.0, **waveform_kwargs)
 
     else:
-        del waveform_kwargs["minimum_frequency"], waveform_kwargs["maximum_frequency"]
+        _ = waveform_kwargs.pop("minimum_frequency", None)
+        _ = waveform_kwargs.pop("maximum_frequency", None)
         waveform_kwargs["frequencies"] = waveform_kwargs.pop("frequency_bin_edges")
         return _base_waveform_frequency_sequence(
             frequency_array=frequency_array, mass_1=mass_1, mass_2=mass_2,
@@ -764,7 +765,8 @@ def lal_binary_neutron_star_relative_binning(
             a_1=a_1, a_2=a_2, tilt_1=tilt_1, tilt_2=tilt_2, phi_12=phi_12,
             phi_jl=phi_jl, lambda_1=lambda_1, lambda_2=lambda_2, **waveform_kwargs)
     else:
-        del waveform_kwargs["minimum_frequency"], waveform_kwargs["maximum_frequency"]
+        _ = waveform_kwargs.pop("minimum_frequency", None)
+        _ = waveform_kwargs.pop("maximum_frequency", None)
         waveform_kwargs["frequencies"] = waveform_kwargs.pop("frequency_bin_edges")
         return _base_waveform_frequency_sequence(
             frequency_array=frequency_array, mass_1=mass_1, mass_2=mass_2,
