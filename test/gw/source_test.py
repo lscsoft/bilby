@@ -305,7 +305,6 @@ class TestROQBBH(unittest.TestCase):
             frequency_nodes_linear=fnodes_linear,
             frequency_nodes_quadratic=fnodes_quadratic,
             reference_frequency=50.0,
-            minimum_frequency=20.0,
             waveform_approximant="IMRPhenomPv2",
         )
         self.frequency_array = bilby.core.utils.create_frequency_series(2048, 4)
@@ -347,11 +346,11 @@ class TestBBHfreqseq(unittest.TestCase):
         self.minimum_frequency = 20.0
         self.frequency_array = bilby.core.utils.create_frequency_series(2048, 8)
         self.full_frequencies_to_sequence = self.frequency_array >= self.minimum_frequency
+        self.frequencies = self.frequency_array[self.full_frequencies_to_sequence]
         self.waveform_kwargs = dict(
             waveform_approximant="IMRPhenomHM",
             reference_frequency=50.0,
             catch_waveform_errors=True,
-            frequencies=self.frequency_array[self.full_frequencies_to_sequence]
         )
         self.bad_parameters = copy(self.parameters)
         self.bad_parameters["mass_1"] = -30.0
@@ -367,7 +366,7 @@ class TestBBHfreqseq(unittest.TestCase):
         self.parameters.update(self.waveform_kwargs)
         self.assertIsInstance(
             bilby.gw.source.binary_black_hole_frequency_sequence(
-                self.frequency_array, **self.parameters
+                self.frequency_array, frequencies=self.frequencies, **self.parameters
             ),
             dict
         )
@@ -376,7 +375,7 @@ class TestBBHfreqseq(unittest.TestCase):
         self.bad_parameters.update(self.waveform_kwargs)
         self.assertIsNone(
             bilby.gw.source.binary_black_hole_frequency_sequence(
-                self.frequency_array, **self.bad_parameters
+                self.frequency_array, frequencies=self.frequencies, **self.bad_parameters
             )
         )
 
