@@ -346,7 +346,7 @@ class TestBBHfreqseq(unittest.TestCase):
         )
         self.minimum_frequency = 20.0
         self.frequency_array = bilby.core.utils.create_frequency_series(2048, 8)
-        self.full_frequencies_to_sequence = self.frequency_array >= minimum_frequency
+        self.full_frequencies_to_sequence = self.frequency_array >= self.minimum_frequency
         self.waveform_kwargs = dict(
             waveform_approximant="IMRPhenomHM",
             reference_frequency=50.0,
@@ -457,7 +457,7 @@ class TestBNSfreqseq(unittest.TestCase):
         )
         self.minimum_frequency = 50.0
         self.frequency_array = bilby.core.utils.create_frequency_series(2048, 16)
-        self.full_frequencies_to_sequence = self.frequency_array >= minimum_frequency
+        self.full_frequencies_to_sequence = self.frequency_array >= self.minimum_frequency
         self.waveform_kwargs = dict(
             waveform_approximant="IMRPhenomPv2_NRTidal",
             reference_frequency=50.0,
