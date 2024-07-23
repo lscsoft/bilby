@@ -410,7 +410,7 @@ class TestBBHfreqseq(unittest.TestCase):
             self.frequency_array, frequencies=self.frequencies, **parameters
         )
         lalbbh = bilby.gw.source.lal_binary_black_hole(
-            self.frequency_array, minimum_frequency=self.minimum_frequency, **self.parameters
+            self.frequency_array, minimum_frequency=self.minimum_frequency, **parameters
         )
         self.assertEqual(freqseq.keys(), lalbbh.keys())
         for mode in freqseq:
@@ -428,7 +428,7 @@ class TestBBHfreqseq(unittest.TestCase):
             self.frequency_array, frequencies=self.frequencies, **parameters
         )
         lalbbh = bilby.gw.source.lal_binary_black_hole(
-            self.frequency_array, minimum_frequency=self.minimum_frequency, **self.parameters
+            self.frequency_array, minimum_frequency=self.minimum_frequency, **parameters
         )
         self.assertEqual(freqseq.keys(), lalbbh.keys())
         for mode in freqseq:
