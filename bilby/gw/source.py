@@ -8,6 +8,13 @@ from .utils import (lalsim_GetApproximantFromString,
                     lalsim_SimInspiralChooseFDWaveform,
                     lalsim_SimInspiralChooseFDWaveformSequence)
 
+UNUSED_KWARGS_MESSAGE = """There are unused waveform kwargs. This is deprecated behavior and will
+result in an error in future releases. Make sure all of the waveform kwargs are correctly
+spelled.
+
+Unused waveform_kwargs: {waveform_kwargs}
+"""
+
 
 def gwsignal_binary_black_hole(frequency_array, mass_1, mass_2, luminosity_distance, a_1, tilt_1,
                                phi_12, a_2, tilt_2, phi_jl, theta_jn, phase, **kwargs):
@@ -662,7 +669,7 @@ def _base_lal_cbc_fd_waveform(
         h_cross[frequency_bounds] *= time_shift
 
     if len(waveform_kwargs) > 0:
-        raise ValueError(f"Unused waveform_kwargs: {waveform_kwargs}")
+        logger.warning(UNUSED_KWARGS_MESSAGE.format(waveform_kwargs))
 
     return dict(plus=h_plus, cross=h_cross)
 
@@ -1121,7 +1128,7 @@ def _base_waveform_frequency_sequence(
                 raise
 
     if len(waveform_kwargs) > 0:
-        raise ValueError(f"Unused waveform_kwargs: {waveform_kwargs}")
+        logger.warning(UNUSED_KWARGS_MESSAGE.format(waveform_kwargs))
 
     return dict(plus=h_plus.data.data, cross=h_cross.data.data)
 
