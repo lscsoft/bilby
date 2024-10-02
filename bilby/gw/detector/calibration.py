@@ -13,8 +13,14 @@ from ..prior import CalibrationPriorDict
 
 
 def read_calibration_file(filename, frequency_array, number_of_response_curves, starting_index=0):
-    """
-    Function to read the hdf5 files from the calibration group containing the physical calibration response curves.
+    r"""
+    Function to read the hdf5 files from the calibration group containing the
+    physical calibration response curves.
+
+    These curves are defined to convert calibrated strain (:code:`d`) to
+    theoretical waveform templates (:code:`h`), in the likelihood we apply
+    the correction in the opposite direction and so must invert the curves
+    stored in the file.
 
     Parameters
     ----------
@@ -55,7 +61,7 @@ def read_calibration_file(filename, frequency_array, number_of_response_curves, 
 
     # interpolate to the frequency array (where if outside the range of the calibration uncertainty its fixed to 1)
     calibration_draws = calibration_amplitude * np.exp(1j * calibration_phase)
-    calibration_draws = interp1d(
+    calibration_draws = 1 / interp1d(
         calibration_frequencies, calibration_draws, kind='cubic',
         bounds_error=False, fill_value=1)(frequency_array)
 
