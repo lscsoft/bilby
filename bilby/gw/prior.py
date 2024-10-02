@@ -1138,7 +1138,7 @@ class CalibrationPriorDict(PriorDict):
     @staticmethod
     def from_envelope_file(envelope_file, minimum_frequency,
                            maximum_frequency, n_nodes, label,
-                           boundary="reflective"):
+                           boundary="reflective", correction=None):
         """
         Load in the calibration envelope.
 
@@ -1148,6 +1148,13 @@ class CalibrationPriorDict(PriorDict):
 
             frequency median-amplitude median-phase -1-sigma-amplitude
             -1-sigma-phase +1-sigma-amplitude +1-sigma-phase
+
+        There are two definitions of the calibration correction in the
+        literature, one defines the correction as mapping calibrated strain
+        to theoretical waveform templates (:code:`data`) and the other as
+        mapping theoretical waveform templates to calibrated strain
+        (:code:`template`). Prior to version XYZ, :code:`tempalte` was assumed,
+        the default changed when the :code:`correction` argument was added.
 
         Parameters
         ==========
@@ -1163,6 +1170,10 @@ class CalibrationPriorDict(PriorDict):
             Label for the names of the parameters, e.g., `recalib_H1_`
         boundary: None, 'reflective', 'periodic'
             The type of prior boundary to assign
+        correction: str
+            How the correction is defined, either to the data (default) or
+            the template.
+            ..versionadded XYZ
 
         Returns
         =======
@@ -1170,12 +1181,34 @@ class CalibrationPriorDict(PriorDict):
             Priors for the relevant parameters.
             This includes the frequencies of the nodes which are _not_ sampled.
         """
+        if correction is None:
+            logger.warning(
+                "Calibration envelope correction type is not specified. "
+                "Assuming this correction maps calibrated data to theoretical "
+                "strain. If this is correct, this should be explicitly "
+                "specified via CalibrationPriorDict.from_envelope_file(..., "
+                "correction='data')."
+            )
+            correction = "data"
+        if correction.lower() not in ["data", "template"]:
+            raise ValueError(
+                "Calibration envelope correction should be one of 'data' or "
+                f"'template', found {correction}."
+            )
+
         calibration_data = np.genfromtxt(envelope_file).T
         log_frequency_array = np.log(calibration_data[0])
-        amplitude_median = calibration_data[1] - 1
-        phase_median = calibration_data[2]
-        amplitude_sigma = (calibration_data[5] - calibration_data[3]) / 2
-        phase_sigma = (calibration_data[6] - calibration_data[4]) / 2
+
+        if correction.lower() == "data":
+            amplitude_median = 1 / calibration_data[1] - 1
+            phase_median = -calibration_data[2]
+            amplitude_sigma = (1 / calibration_data[3] - 1 / calibration_data[5]) / 2
+            phase_sigma = (calibration_data[6] - calibration_data[4]) / 2
+        else:
+            amplitude_median = calibration_data[1] - 1
+            phase_median = calibration_data[2]
+            amplitude_sigma = (calibration_data[5] - calibration_data[3]) / 2
+            phase_sigma = (calibration_data[6] - calibration_data[4]) / 2
 
         log_nodes = np.linspace(np.log(minimum_frequency),
                                 np.log(maximum_frequency), n_nodes)
