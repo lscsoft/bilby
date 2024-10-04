@@ -50,7 +50,7 @@ class LivePointSampler(UnitCubeSampler):
 
         # update walks to match target naccept
         accept_prob = max(0.5, blob["accept"]) / self.kwargs["walks"]
-        delay = self.nlive // 10 - 1
+        delay = max(self.nlive // 10 - 1, 0)
         n_target = getattr(_SamplingContainer, "naccept", 60)
         self.walks = (self.walks * delay + n_target / accept_prob) / (delay + 1)
         self.kwargs["walks"] = min(int(np.ceil(self.walks)), _SamplingContainer.maxmcmc)
@@ -220,7 +220,7 @@ class ACTTrackingRWalk:
 
         # Setup
         current_u = args.u
-        check_interval = int(np.ceil(self.act))
+        check_interval = self.integer_act
         target_nact = 50
         next_check = check_interval
         n_checks = 0
@@ -300,11 +300,11 @@ class ACTTrackingRWalk:
         )
         reject += nfail
         blob = {"accept": accept, "reject": reject, "scale": args.scale}
-        iact = int(np.ceil(self.act))
+        iact = self.integer_act
         thin = self.thin * iact
 
         if accept == 0:
-            logger.debug(
+            logger.warning(
                 "Unable to find a new point using walk: returning a random point"
             )
             u = common_kwargs["rstate"].uniform(size=len(current_u))
@@ -358,6 +358,13 @@ class ACTTrackingRWalk:
         else:
             return np.inf
         return max(calculate_tau(samples), naive_act, most_failures)
+
+    @property
+    def integer_act(self):
+        if np.isinf(self.act):
+            return self.act
+        else:
+            return int(np.ceil(self.act))
 
 
 class AcceptanceTrackingRWalk:
