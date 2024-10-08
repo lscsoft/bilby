@@ -557,8 +557,8 @@ class TestLoadPriorWithCosmologicalParameters(unittest.TestCase):
         )
         prior_dict = bilby.gw.prior.BBHPriorDict(filename=prior_file)
         cosmology = prior_dict["luminosity_distance"].cosmology
-        self.assertTrue(cosmology.H0 == 67.90)
-        self.assertTrue(cosmology.Om0 == 0.3065)
+        self.assertEqual(cosmology.H0.value, 67.90)
+        self.assertEqual(cosmology.Om0, 0.3065)
 
 
 if __name__ == "__main__":
