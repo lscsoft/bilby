@@ -1716,7 +1716,7 @@ class Result(object):
         try:
             import arviz as az
         except ImportError:
-            raise RuntimeError(
+            raise ResultError(
                 "ArviZ is not installed, so cannot convert to InferenceData."
             )
 
