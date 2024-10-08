@@ -12,7 +12,7 @@ from ...core.prior.dict import PriorDict
 from ..prior import CalibrationPriorDict
 
 
-def read_calibration_file(filename, frequency_array, number_of_response_curves, starting_index=0):
+def read_calibration_file(filename, frequency_array, number_of_response_curves, starting_index=0, correction=None):
     r"""
     Function to read the hdf5 files from the calibration group containing the
     physical calibration response curves.
@@ -33,6 +33,9 @@ def read_calibration_file(filename, frequency_array, number_of_response_curves, 
     starting_index: int
         Index of the first curve to use within the array. This allows for segmenting the calibration curve array
         into smaller pieces.
+    correction: str
+        How the correction is defined, either to the data (default) or
+        the template, see :func:`bilby.gw.prior.CalibrationPriorDict.from_envelope_file`.
 
     Returns
     -------
@@ -42,6 +45,21 @@ def read_calibration_file(filename, frequency_array, number_of_response_curves, 
 
     """
     import tables
+
+    if correction is None:
+        logger.warning(
+            "Calibration envelope correction type is not specified. "
+            "Assuming this correction maps calibrated data to theoretical "
+            "strain. If this is correct, this should be explicitly "
+            "specified via CalibrationPriorDict.from_envelope_file(..., "
+            "correction='data')."
+        )
+        correction = "data"
+    if correction.lower() not in ["data", "template"]:
+        raise ValueError(
+            "Calibration envelope correction should be one of 'data' or "
+            f"'template', found {correction}."
+        )
 
     logger.info(f"Reading calibration draws from {filename}")
     calibration_file = tables.open_file(filename, 'r')
@@ -61,9 +79,11 @@ def read_calibration_file(filename, frequency_array, number_of_response_curves, 
 
     # interpolate to the frequency array (where if outside the range of the calibration uncertainty its fixed to 1)
     calibration_draws = calibration_amplitude * np.exp(1j * calibration_phase)
-    calibration_draws = 1 / interp1d(
+    calibration_draws = interp1d(
         calibration_frequencies, calibration_draws, kind='cubic',
         bounds_error=False, fill_value=1)(frequency_array)
+    if correction == "data":
+        calibration_draws **= -1
 
     try:
         parameter_draws = pd.read_hdf(filename, key="CalParams")
@@ -73,7 +93,7 @@ def read_calibration_file(filename, frequency_array, number_of_response_curves, 
     return calibration_draws, parameter_draws
 
 
-def write_calibration_file(filename, frequency_array, calibration_draws, calibration_parameter_draws=None):
+def write_calibration_file(filename, frequency_array, calibration_draws, calibration_parameter_draws=None, correction=None):
     """
     Function to write the generated response curves to file
 
@@ -88,9 +108,32 @@ def write_calibration_file(filename, frequency_array, calibration_draws, calibra
         Shape is (number_of_response_curves x len(frequency_array))
     calibration_parameter_draws: data_frame
         Parameters used to generate the random draws of the calibration response curves
+    correction: str
+        How the correction is defined, either to the data (default) or
+        the template, see :func:`bilby.gw.prior.CalibrationPriorDict.from_envelope_file`.
+        If :code:`data`, the calibration draws will be inverted before being saved so that the format
+        matches files produced by detector calibration pipelines.
 
     """
     import tables
+
+    if correction is None:
+        logger.warning(
+            "Calibration envelope correction type is not specified. "
+            "Assuming this correction maps calibrated data to theoretical "
+            "strain. If this is correct, this should be explicitly "
+            "specified via CalibrationPriorDict.from_envelope_file(..., "
+            "correction='data')."
+        )
+        correction = "data"
+    if correction.lower() not in ["data", "template"]:
+        raise ValueError(
+            "Calibration envelope correction should be one of 'data' or "
+            f"'template', found {correction}."
+        )
+
+    if correction == "data":
+        calibration_draws **= -1
 
     logger.info(f"Writing calibration draws to {filename}")
     calibration_file = tables.open_file(filename, 'w')
