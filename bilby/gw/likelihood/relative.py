@@ -318,8 +318,10 @@ class RelativeBinningGravitationalWaveTransient(GravitationalWaveTransient):
                 index = np.where(masked_frequency_array == edge)[0][0]
                 masked_bin_inds.append(index)
             # For the last bin, make sure to include
-            # the last point in the frequency array
-            masked_bin_inds[-1] += 1
+            # the last point in the frequency array,
+            # if it's not already included
+            if masked_bin_inds[-1] < len(masked_frequency_array) - 1:
+                masked_bin_inds[-1] += 1
 
             masked_strain = interferometer.frequency_domain_strain[mask]
             masked_h0 = self.per_detector_fiducial_waveforms[interferometer.name][mask]
