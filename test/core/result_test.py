@@ -7,6 +7,7 @@ import json
 from unittest.mock import patch
 
 import bilby
+from bilby.core.result import ResultError
 
 
 class TestJson(unittest.TestCase):
@@ -503,7 +504,7 @@ class TestResult(unittest.TestCase):
 
         mock_import.side_effect = import_side_effect
 
-        with self.assertRaises(RuntimeError) as excinfo:
+        with self.assertRaises(ResultError) as excinfo:
             self.result.to_arviz()
 
         self.assertEqual(
