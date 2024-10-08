@@ -548,5 +548,18 @@ class TestFillPrior(unittest.TestCase):
         self.assertIsInstance(self.priors["ra"], bilby.core.prior.Uniform)
 
 
+class TestLoadPriorWithCosmologicalParameters(unittest.TestCase):
+
+    def test_load(self):
+        prior_file = os.path.join(
+            os.path.dirname(os.path.realpath(__file__)),
+            "prior_files/prior_with_cosmo_params.prior"
+        )
+        prior_dict = bilby.gw.prior.BBHPriorDict(filename=prior_file)
+        cosmology = prior_dict["luminosity_distance"].cosmology
+        self.assertTrue(cosmology.H0 == 67.90)
+        self.assertTrue(cosmology.Om0 == 0.3065)
+
+
 if __name__ == "__main__":
     unittest.main()
