@@ -93,7 +93,9 @@ def read_calibration_file(filename, frequency_array, number_of_response_curves, 
     return calibration_draws, parameter_draws
 
 
-def write_calibration_file(filename, frequency_array, calibration_draws, calibration_parameter_draws=None, correction=None):
+def write_calibration_file(
+    filename, frequency_array, calibration_draws, calibration_parameter_draws=None, correction=None
+):
     """
     Function to write the generated response curves to file
 
