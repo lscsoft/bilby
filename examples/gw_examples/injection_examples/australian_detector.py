@@ -10,7 +10,10 @@ This requires :code:`gwinc` to be installed. This is available via conda-forge.
 
 import bilby
 import gwinc
-import numpy as np
+from bilby.core.utils.random import seed
+
+# Sets seed of bilby's generator "rng" to "123" to ensure reproducibility
+seed(123)
 
 # Set the duration and sampling frequency of the data segment that we're going
 # to inject the signal into
@@ -21,9 +24,6 @@ sampling_frequency = 1024
 outdir = "outdir"
 label = "australian_detector"
 bilby.core.utils.setup_logger(outdir=outdir, label=label)
-
-# Set up a random seed for result reproducibility.  This is optional!
-np.random.seed(88170232)
 
 # create a new detector using a PyGwinc sensitivity curve
 curve = gwinc.load_budget("Aplus").run()

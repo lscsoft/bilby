@@ -3,13 +3,13 @@
 This example demonstrates how to simulate some data, add an injected signal
 and plot the data.
 """
-import numpy as np
+from bilby.core.utils.random import seed
 from bilby.gw.detector import get_empty_interferometer
 from bilby.gw.source import lal_binary_black_hole
 from bilby.gw.waveform_generator import WaveformGenerator
 
-np.random.seed(1)
-
+# Sets seed of bilby's generator "rng" to "123" to ensure reproducibility
+seed(123)
 duration = 4
 sampling_frequency = 2048.0
 

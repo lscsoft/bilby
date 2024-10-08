@@ -10,15 +10,16 @@ tidal deformabilities
 
 
 import bilby
-import numpy as np
+from bilby.core.utils.random import seed
+
+# Sets seed of bilby's generator "rng" to "123" to ensure reproducibility
+seed(123)
 
 # Specify the output directory and the name of the simulation.
 outdir = "outdir"
 label = "bns_example"
 bilby.core.utils.setup_logger(outdir=outdir, label=label)
 
-# Set up a random seed for result reproducibility.  This is optional!
-np.random.seed(88170235)
 
 # We are going to inject a binary neutron star waveform.  We first establish a
 # dictionary of parameters that includes all of the different waveform

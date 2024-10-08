@@ -14,6 +14,10 @@ correct the ROQ result is.
 
 import bilby
 import numpy as np
+from bilby.core.utils.random import seed
+
+# Sets seed of bilby's generator "rng" to "123" to ensure reproducibility
+seed(123)
 
 outdir = "outdir"
 label = "roq"
@@ -39,7 +43,6 @@ minimum_chirp_mass = params["chirpmassmin"] / scale_factor
 maximum_chirp_mass = params["chirpmassmax"] / scale_factor
 minimum_component_mass = params["compmin"] / scale_factor
 
-np.random.seed(170808)
 
 duration = 4 / scale_factor
 sampling_frequency = 2048 * scale_factor

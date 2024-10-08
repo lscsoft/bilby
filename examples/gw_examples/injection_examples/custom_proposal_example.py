@@ -12,8 +12,11 @@ import multiprocessing
 multiprocessing.set_start_method("fork")  # noqa
 
 import bilby.gw.sampler.proposal
-import numpy as np
 from bilby.core.sampler import proposal
+from bilby.core.utils.random import seed
+
+# Sets seed of bilby's generator "rng" to "123" to ensure reproducibility
+seed(123)
 
 # The set up here is the same as in fast_tutorial.py. Look there for descriptive explanations.
 
@@ -24,7 +27,6 @@ outdir = "outdir"
 label = "custom_jump_proposals"
 bilby.core.utils.setup_logger(outdir=outdir, label=label)
 
-np.random.seed(88170235)
 
 injection_parameters = dict(
     mass_1=36.0,

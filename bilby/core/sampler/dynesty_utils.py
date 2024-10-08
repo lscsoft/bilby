@@ -601,8 +601,9 @@ def propose_differetial_evolution(
         The number of dimensions to run the differential evolution over, the
         first :code:`n_cluster` dimensions are used. The rest are randomly
         sampled from the prior.
-    rstate: np.random.RandomState
-        The random state to use to generate random numbers.
+    rstate: numpy.random.Generator
+        The numpy generator instance used for random number generation.
+        Consider using built in `bilby.core.utils.random.rng`.
     mix: float
         The fraction of proposed points that should follow the specified scale
         rather than mode hopping. :code:`default=0.5`
@@ -656,8 +657,9 @@ def propose_volumetric(
         The number of dimensions to run the differential evolution over, the
         first :code:`n_cluster` dimensions are used. The rest are randomly
         sampled from the prior.
-    rstate: np.random.RandomState
-        The random state to use to generate random numbers.
+    rstate: numpy.random.Generator
+        The numpy generator instance used for random number generation.
+        Consider using built in `bilby.core.utils.random.rng`.
 
     Returns
     -------

@@ -8,6 +8,10 @@ unknown contribution from the vector modes.
 """
 import bilby
 import numpy as np
+from bilby.core.utils.random import seed
+
+# Sets seed of bilby's generator "rng" to "123" to ensure reproducibility
+seed(123)
 
 
 def vector_tensor_sine_gaussian(frequency_array, hrss, Q, frequency, epsilon):
@@ -42,8 +46,6 @@ sampling_frequency = 512
 outdir = "outdir"
 label = "vector_tensor"
 bilby.core.utils.setup_logger(outdir=outdir, label=label)
-
-np.random.seed(170801)
 
 injection_parameters = dict(
     hrss=1e-22,

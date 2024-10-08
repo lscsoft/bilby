@@ -5,12 +5,14 @@ Example of how to use the multi-banding method (see Morisaki, (2021) arXiv:
 """
 
 import bilby
-import numpy as np
+from bilby.core.utils.random import seed
+
+# Sets seed of bilby's generator "rng" to "123" to ensure reproducibility
+seed(123)
 
 outdir = "outdir"
 label = "multibanding"
 
-np.random.seed(170808)
 
 minimum_frequency = 20
 reference_frequency = 100

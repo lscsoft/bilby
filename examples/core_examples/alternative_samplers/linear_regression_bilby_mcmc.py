@@ -8,6 +8,10 @@ data with background Gaussian noise
 import bilby
 import matplotlib.pyplot as plt
 import numpy as np
+from bilby.core.utils.random import rng, seed
+
+# Sets seed of bilby's generator "rng" to "123" to ensure reproducibility
+seed(123)
 
 # A few simple setup steps
 label = "linear_regression_bilby_mcmc"
@@ -31,8 +35,8 @@ sampling_frequency = 10
 time_duration = 10
 time = np.arange(0, time_duration, 1 / sampling_frequency)
 N = len(time)
-sigma = np.random.normal(1, 0.01, N)
-data = model(time, **injection_parameters) + np.random.normal(0, sigma, N)
+sigma = rng.normal(1, 0.01, N)
+data = model(time, **injection_parameters) + rng.normal(0, sigma, N)
 
 # We quickly plot the data to check it looks sensible
 fig, ax = plt.subplots()

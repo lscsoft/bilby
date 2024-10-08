@@ -9,6 +9,10 @@ The cosmology is according to the Planck 2015 data release.
 """
 import bilby
 import numpy as np
+from bilby.core.utils.random import seed
+
+# Sets seed of bilby's generator "rng" to "123" to ensure reproducibility
+seed(123)
 
 bilby.core.utils.setup_logger(log_level="info")
 
@@ -17,7 +21,6 @@ sampling_frequency = 2048
 outdir = "outdir"
 label = "different_parameters"
 
-np.random.seed(151226)
 
 injection_parameters = dict(
     total_mass=66.0,
