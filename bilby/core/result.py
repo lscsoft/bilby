@@ -1707,13 +1707,17 @@ class Result(object):
             =======
             azdata: InferenceData
                 The ArviZ InferenceData object.
+
+            Raises
+            ======
+            RuntimeError: If ArviZ is not installed.
         """
 
         try:
             import arviz as az
         except ImportError:
-            logger.debug(
-                "ArviZ is not installed, so cannot convert to InferenceData"
+            raise ResultError(
+                "ArviZ is not installed, so cannot convert to InferenceData."
             )
 
         posdict = {}

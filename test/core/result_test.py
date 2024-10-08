@@ -4,8 +4,10 @@ import pandas as pd
 import shutil
 import os
 import json
+from unittest.mock import patch
 
 import bilby
+from bilby.core.result import ResultError
 
 
 class TestJson(unittest.TestCase):
@@ -491,6 +493,24 @@ class TestResult(unittest.TestCase):
         az = self.result.to_arviz()
         self.assertTrue(np.array_equal(az.log_likelihood["log_likelihood"].values.squeeze(),
                                        log_likelihood))
+
+    @patch("builtins.__import__")
+    def test_to_arviz_not_installed(self, mock_import):
+
+        def import_side_effect(name, *args):
+            if name == "arviz":
+                raise ImportError
+            return __import__(name, *args)
+
+        mock_import.side_effect = import_side_effect
+
+        with self.assertRaises(ResultError) as excinfo:
+            self.result.to_arviz()
+
+        self.assertEqual(
+            str(excinfo.exception),
+            "ArviZ is not installed, so cannot convert to InferenceData."
+        )
 
     def test_result_caching(self):
 
