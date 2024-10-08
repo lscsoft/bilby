@@ -747,6 +747,18 @@ class Result(object):
         for attr in save_attrs:
             try:
                 dictionary[attr] = getattr(self, attr)
+                if (attr == "meta_data") and (
+                    "lal_waveform_dictionary"
+                    in dictionary[attr]["likelihood"]["waveform_arguments"]["lal_waveform_dictionary"]
+                ):
+                    from ..gw.utils import gwsignal_from_lal_dict
+
+                    dictionary[attr]["likelihood"]["waveform_arguments"][
+                        "lal_waveform_dictionary"
+                    ] = gwsignal_from_lal_dict(
+                        dictionary[attr]["likelihood"]["waveform_arguments"]["lal_waveform_dictionary"]
+                    )
+
             except ValueError as e:
                 logger.debug("Unable to save {}, message: {}".format(attr, e))
                 pass

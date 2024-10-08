@@ -1073,3 +1073,22 @@ def calculate_time_to_merger(frequency, mass_1, mass_2, chi=0, safety=1.1):
         chi,
         -1
     )
+
+
+def gwsignal_from_lal_dict(ldict):
+    """
+    Convert LALDict object to a Python dictionary
+
+    Parameters
+    ==========
+    ldict: LALDict
+        LALDict object
+
+    Returns
+    =======
+    d: dict
+        Python dictionary
+    """
+    from lalsimulation.gwsignal.core.utils import from_lal_dict
+
+    return from_lal_dict(ldict)
