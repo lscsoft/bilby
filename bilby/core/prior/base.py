@@ -363,7 +363,7 @@ class Prior(object):
         args = string.split(',')
         remove = list()
         for ii, key in enumerate(args):
-            for paren_pair in [('(', ')'), ('{', '}')]:
+            for paren_pair in ['()', '{}', '[]']:
                 if paren_pair[0] in key:
                     jj = ii
                     while paren_pair[1] not in args[jj]:
