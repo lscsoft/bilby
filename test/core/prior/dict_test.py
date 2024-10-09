@@ -557,6 +557,8 @@ class TestLoadPriorWithCosmologicalParameters(unittest.TestCase):
         )
         prior_dict = bilby.gw.prior.BBHPriorDict(filename=prior_file)
         cosmology = prior_dict["luminosity_distance"].cosmology
+        # These values are based on Plank15_LAL as defined in:
+        # https://dcc.ligo.org/DocDB/0167/T2000185/005/LVC_symbol_convention.pdf
         self.assertEqual(cosmology.H0.value, 67.90)
         self.assertEqual(cosmology.Om0, 0.3065)
 
