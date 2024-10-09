@@ -560,6 +560,10 @@ class TestLoadPriorWithCosmologicalParameters(unittest.TestCase):
         self.assertEqual(cosmology.H0.value, 67.90)
         self.assertEqual(cosmology.Om0, 0.3065)
 
+        dl = 1000.0
+        ln_prob = prior_dict["luminosity_distance"].ln_prob(dl)
+        self.assertEqual(ln_prob, -9.360343006800193)
+
 
 if __name__ == "__main__":
     unittest.main()
