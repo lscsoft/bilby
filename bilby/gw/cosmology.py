@@ -41,7 +41,14 @@ def get_cosmology(cosmology=None):
     elif isinstance(cosmology, cosmo.FLRW):
         cosmology = cosmology
     elif isinstance(cosmology, str):
-        cosmology = getattr(cosmo, cosmology)
+        if cosmology.lower() == "planck15_lal":
+            # Planck15_LAL cosmology as defined in:
+            # https://dcc.ligo.org/DocDB/0167/T2000185/005/LVC_symbol_convention.pdf
+            cosmology = cosmo.FlatLambdaCDM(
+                H0=67.90, Om0=0.3065, name="Planck15_LAL"
+            )
+        else:
+            cosmology = getattr(cosmo, cosmology)
     elif isinstance(cosmology, dict):
         if 'Ode0' in cosmology.keys():
             if 'w0' in cosmology.keys():
