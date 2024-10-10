@@ -1687,7 +1687,6 @@ def _generate_all_cbc_parameters(sample, defaults, base_conversion,
                     "Failed to generate sky frame parameters for type {}"
                     .format(type(output_sample))
                 )
-    if likelihood is not None:
         compute_snrs(output_sample, likelihood, npool=npool)
     for key, func in zip(["mass", "spin", "source frame"], [
             generate_mass_parameters, generate_spin_parameters,
