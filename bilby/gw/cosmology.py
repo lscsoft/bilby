@@ -14,6 +14,20 @@ def _set_default_cosmology():
         COSMOLOGY = [DEFAULT_COSMOLOGY, DEFAULT_COSMOLOGY.name]
 
 
+def get_available_cosmologies():
+    """Get the list of available cosmologies.
+
+    Includes the Planck15_LAL cosmology.
+
+    Returns
+    -------
+    tuple
+        A tuple of strings with the names of the available cosmologies.
+    """
+    from astropy.cosmology.realizations import available
+    return (*available, "Planck15_LAL")
+
+
 def get_cosmology(cosmology=None):
     """
     Get an instance of a astropy.cosmology.FLRW subclass.
