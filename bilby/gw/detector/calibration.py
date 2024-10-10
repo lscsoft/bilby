@@ -79,11 +79,11 @@ def read_calibration_file(filename, frequency_array, number_of_response_curves, 
 
     # interpolate to the frequency array (where if outside the range of the calibration uncertainty its fixed to 1)
     calibration_draws = calibration_amplitude * np.exp(1j * calibration_phase)
-    calibration_draws = 1 / interp1d(
+    calibration_draws = interp1d(
         calibration_frequencies, calibration_draws, kind='cubic',
         bounds_error=False, fill_value=1)(frequency_array)
     if correction == "data":
-        calibration_draws **= -1
+        calibration_draws = 1 / calibration_draws
 
     try:
         parameter_draws = pd.read_hdf(filename, key="CalParams")
@@ -135,7 +135,7 @@ def write_calibration_file(
         )
 
     if correction == "data":
-        calibration_draws **= -1
+        calibration_draws = 1 / calibration_draws
 
     logger.info(f"Writing calibration draws to {filename}")
     calibration_file = tables.open_file(filename, 'w')
