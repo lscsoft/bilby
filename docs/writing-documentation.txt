@@ -59,7 +59,7 @@ all of the new/changed files::
    $ git commit -m "Adding my documentation for the feature"
    $ git push origin adding-my-new-documentation
 
-Then, on the web interface create a merge request.
+Then, on the web interface create a pull request.
 
 Using reStructured text
 -----------------------

@@ -41,7 +41,7 @@ def git_upstream_url():
         if url[:5] != "https":
             url = f"https://{url}"
     except subprocess.CalledProcessError:
-        url = "https://git.ligo.org/lscsoft/bilby"
+        url = "https://github.com/bilby-dev/bilby"
     return url
 
 
@@ -247,4 +247,4 @@ def linkcode_resolve(domain, info):
     except Exception:
         return
 
-    return f"{GITURL}/-/tree/{GITHASH}/{file}#L{start}-L{end}"
+    return f"{GITURL}/tree/{GITHASH}/{file}#L{start}-L{end}"

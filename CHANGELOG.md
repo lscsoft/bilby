@@ -1,5 +1,8 @@
 # All notable changes will be documented in this file
 
+**Note:** following the migration from LIGO GitLab to GitHub, the links in this changelog have been retroactively updated, see [this PR](https://github.com/bilby-dev/bilby/pull/36).
+The original MRs are only visible on the [LIGO GitLab repository](https://git.ligo.org/lscsoft/bilby/-/merge_requests?scope=all&state=all)
+
 ## [Unreleased]
 
 
@@ -518,9 +521,7 @@ Version 1.0.1 release of bilby
 Version 1.0 release of bilby
 
 ### Changes
-- Minor bug fixes and typo changes only from 0.6.9, see
-git.ligo.org/lscsoft/bilby/-/merge_requests?scope=all&utf8=%E2%9C%93&state=merged&milestone_title=1.0.0
-for details
+- Minor bug fixes and typo changes only from 0.6.9, see the [1.0.0 milestone](https://github.com/bilby-dev/bilby/-/merge_requests?scope=all&state=all&milestone_title=1.0.0) for details
 
 ## [0.6.9] 2020-05-21
 ### Changes
@@ -1032,7 +1033,7 @@ re-instantiate the Prior in most cases
 
 ### Added
 - InterferometerStrainData now handles both time-domain and frequencu-domain data
-- Adds documentation on setting data (https://lscsoft.docs.ligo.org/bilby/transient-gw-data.html)
+- Adds documentation on setting data (https://bilby-dev.github.io/bilby/transient-gw-data.html)
 - Checkpointing for `dynesty`: the sampling will be checkpointed every 10 minutes (approximately) and can be resumed.
 - Add functionality to plot multiple results in a corner plot, see `bilby.core.result.plot_multiple()`.
 - Likelihood evaluations are now saved along with the posteriors.
@@ -1059,38 +1060,38 @@ First `pip` installable version https://pypi.org/project/BILBY/ .
 - Major effort to update all docstrings and add some documentation.
 - Marginalized likelihoods.
 - Examples of searches for gravitational waves from a Supernova and using a sine-Gaussian.
-- A `PriorSet` to handle sets of priors and allows reading in from a standardised prior file (see https://lscsoft.docs.ligo.org/bilby/prior.html).
+- A `PriorSet` to handle sets of priors and allows reading in from a standardised prior file (see https://bilby-dev.github.io/bilby/prior.html).
 - A standardised file for storing detector data.
 
 ### Removed
 - All chainconsumer dependency as this was causing issues.
 
 
-[Unreleased]: https://git.ligo.org/lscsoft/bilby/-/compare/v2.3.0...master
-[2.3.0]: https://git.ligo.org/lscsoft/bilby/-/compare/v2.2.3...v2.3.0
-[2.2.3]: https://git.ligo.org/lscsoft/bilby/-/compare/v2.2.2...v2.2.3
-[2.2.2]: https://git.ligo.org/lscsoft/bilby/-/compare/v2.2.1...v2.2.2
-[2.2.1]: https://git.ligo.org/lscsoft/bilby/-/compare/v2.2.0...v2.2.1
-[2.2.0]: https://git.ligo.org/lscsoft/bilby/-/compare/v2.1.2...v2.2.0
-[2.1.2]: https://git.ligo.org/lscsoft/bilby/-/compare/v2.1.1...v2.1.2
-[2.1.1]: https://git.ligo.org/lscsoft/bilby/-/compare/v2.1.0...v2.1.1
-[2.1.0]: https://git.ligo.org/lscsoft/bilby/-/compare/v2.0.2...v2.1.0
-[2.0.2]: https://git.ligo.org/lscsoft/bilby/-/compare/v2.0.1...v2.0.2
-[2.0.1]: https://git.ligo.org/lscsoft/bilby/-/compare/v2.0.0...v2.0.1
-[2.0.0]: https://git.ligo.org/lscsoft/bilby/-/compare/v1.4.1...v2.0.0
-[1.4.1]: https://git.ligo.org/lscsoft/bilby/-/compare/v1.4.0...v1.4.1
-[1.4.0]: https://git.ligo.org/lscsoft/bilby/-/compare/1.3.0...v1.4.0
-[1.3.0]: https://git.ligo.org/lscsoft/bilby/-/compare/1.2.1...1.3.0
-[1.2.1]: https://git.ligo.org/lscsoft/bilby/-/compare/1.2.0...1.2.1
-[1.2.0]: https://git.ligo.org/lscsoft/bilby/-/compare/1.1.5...1.2.0
-[1.1.5]: https://git.ligo.org/lscsoft/bilby/-/compare/1.1.4...1.1.5
-[1.1.4]: https://git.ligo.org/lscsoft/bilby/-/compare/1.1.2...1.1.4
-[1.1.3]: https://git.ligo.org/lscsoft/bilby/-/compare/1.1.2...1.1.3
-[1.1.2]: https://git.ligo.org/lscsoft/bilby/-/compare/1.1.1...1.1.2
-[1.1.1]: https://git.ligo.org/lscsoft/bilby/-/compare/1.1.0...1.1.1
-[1.1.0]: https://git.ligo.org/lscsoft/bilby/-/compare/1.0.4...1.1.0
-[1.0.4]: https://git.ligo.org/lscsoft/bilby/-/compare/1.0.3...1.0.4
-[1.0.3]: https://git.ligo.org/lscsoft/bilby/-/compare/1.0.2...1.0.3
-[1.0.2]: https://git.ligo.org/lscsoft/bilby/-/compare/1.0.1...1.0.2
-[1.0.1]: https://git.ligo.org/lscsoft/bilby/-/compare/1.0.0...1.0.1
-[1.0.0]: https://git.ligo.org/lscsoft/bilby/-/compare/0.6.9...1.0.0
+[Unreleased]: https://github.com/bilby-dev/bilby/compare/v2.3.0...main
+[2.3.0]: https://github.com/bilby-dev/bilby/compare/v2.2.3...v2.3.0
+[2.2.3]: https://github.com/bilby-dev/bilby/compare/v2.2.2...v2.2.3
+[2.2.2]: https://github.com/bilby-dev/bilby/compare/v2.2.1...v2.2.2
+[2.2.1]: https://github.com/bilby-dev/bilby/compare/v2.2.0...v2.2.1
+[2.2.0]: https://github.com/bilby-dev/bilby/compare/v2.1.2...v2.2.0
+[2.1.2]: https://github.com/bilby-dev/bilby/compare/v2.1.1...v2.1.2
+[2.1.1]: https://github.com/bilby-dev/bilby/compare/v2.1.0...v2.1.1
+[2.1.0]: https://github.com/bilby-dev/bilby/compare/v2.0.2...v2.1.0
+[2.0.2]: https://github.com/bilby-dev/bilby/compare/v2.0.1...v2.0.2
+[2.0.1]: https://github.com/bilby-dev/bilby/compare/v2.0.0...v2.0.1
+[2.0.0]: https://github.com/bilby-dev/bilby/compare/v1.4.1...v2.0.0
+[1.4.1]: https://github.com/bilby-dev/bilby/compare/v1.4.0...v1.4.1
+[1.4.0]: https://github.com/bilby-dev/bilby/compare/1.3.0...v1.4.0
+[1.3.0]: https://github.com/bilby-dev/bilby/compare/1.2.1...1.3.0
+[1.2.1]: https://github.com/bilby-dev/bilby/compare/1.2.0...1.2.1
+[1.2.0]: https://github.com/bilby-dev/bilby/compare/1.1.5...1.2.0
+[1.1.5]: https://github.com/bilby-dev/bilby/compare/1.1.4...1.1.5
+[1.1.4]: https://github.com/bilby-dev/bilby/compare/1.1.2...1.1.4
+[1.1.3]: https://github.com/bilby-dev/bilby/compare/1.1.2...1.1.3
+[1.1.2]: https://github.com/bilby-dev/bilby/compare/1.1.1...1.1.2
+[1.1.1]: https://github.com/bilby-dev/bilby/compare/1.1.0...1.1.1
+[1.1.0]: https://github.com/bilby-dev/bilby/compare/1.0.4...1.1.0
+[1.0.4]: https://github.com/bilby-dev/bilby/compare/1.0.3...1.0.4
+[1.0.3]: https://github.com/bilby-dev/bilby/compare/1.0.2...1.0.3
+[1.0.2]: https://github.com/bilby-dev/bilby/compare/1.0.1...1.0.2
+[1.0.1]: https://github.com/bilby-dev/bilby/compare/1.0.0...1.0.1
+[1.0.0]: https://github.com/bilby-dev/bilby/compare/0.6.9...1.0.0

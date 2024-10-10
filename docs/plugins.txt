@@ -56,9 +56,10 @@ Sampler plugin library
 
 This is a list of known sampler plugins. if you don't see your plugin listed
 here, we encourage you to open a
-`merge request <https://git.ligo.org/lscsoft/bilby/-/merge_requests/new>`_ to add it.
+`pull request <https://github.com/bilby-dev/bilby/compare>`_ to add it.
 
-- This could be your sampler
+- :code:`nessai-bilby`: https://github.com/bilby-dev/nessai-bilby
+- :code:`pypolychord-bilby`: https://github.com/bilby-dev/pypolychord-bilby
 
 
 Bilby-native samplers
@@ -89,5 +90,5 @@ Adding a new plugin group
 -------------------------
 
 If you want to add support for a new plugin group, please
-`open an issue <https://git.ligo.org/lscsoft/bilby/-/issues/new>`_
+`open an issue <https://github.com/bilby-dev/bilby/issues/new>`_
 to discuss the details with other developers.

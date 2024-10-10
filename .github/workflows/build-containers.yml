@@ -1,0 +1,60 @@
+name: Build images
+
+on:
+  schedule:
+    - cron: "15 0 * * *" 
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  build-container:
+    permissions:
+      contents: read
+      packages: write
+      attestations: write
+      id-token: write
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["310", "311", "312"]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup dockerfile
+        run: |
+          cp containers/v3-dockerfile-test-suite-python${{ matrix.python-version }} Dockerfile
+          cp containers/env-template.yml .
+
+      - name: Login to the Container registry
+        uses: docker/login-action@65b78e6e13532edd9afa3aa52ac7964289d1a9c1
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
+        with:
+          tags: type=raw,value=latest
+          images: ghcr.io/${{ env.IMAGE_NAME }}-python${{ matrix.python-version }}
+
+      - name: Build and push Docker image
+        id: push
+        uses: docker/build-push-action@f2a1d5e99d037542a71f64918e516c093c6f3fc4
+        with:
+          context: .
+          tags: ${{ steps.meta.outputs.tags }}
+          push: true
+          labels: ${{ steps.meta.outputs.labels }}
+
+      # FIXME: disabled as it is not working well but should probably be added in later
+      # https://docs.github.com/en/actions/security-for-github-actions/using-artifact-attestations/using-artifact-attestations-to-establish-provenance-for-builds
+      # - name: Generate artifact attestation
+      #   uses: actions/attest-build-provenance@v1
+      #   with:
+      #     subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME}}
+      #     subject-digest: ${{ steps.push.outputs.digest }}
+      #     push-to-registry: true

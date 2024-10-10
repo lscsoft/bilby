@@ -81,7 +81,7 @@ The code
 
 In the following example, also available under
 `examples/core_examples/linear_regression.py
-<https://git.ligo.org/lscsoft/bilby/tree/master/examples/core_examples/linear_regression.py>`_
+<https://github.com/bilby-dev/bilby/tree/master/examples/core_examples/linear_regression.py>`_
 we will step through the process of generating some simulated data, writing
 a likelihood and prior, and running nested sampling using `bilby`.
 

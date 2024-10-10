@@ -1153,8 +1153,9 @@ class CalibrationPriorDict(PriorDict):
         literature, one defines the correction as mapping calibrated strain
         to theoretical waveform templates (:code:`data`) and the other as
         mapping theoretical waveform templates to calibrated strain
-        (:code:`template`). Prior to version XYZ, :code:`tempalte` was assumed,
-        the default changed when the :code:`correction` argument was added.
+        (:code:`template`). Prior to version XYZ, :code:`template` was assumed,
+        the default changed to :code:`data` when the :code:`correction` argument
+        was added.
 
         Parameters
         ==========

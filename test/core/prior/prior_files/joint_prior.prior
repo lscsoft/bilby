@@ -1,0 +1,6 @@
+fake_dist = FakeJointPriorDist(names=["testAfake", "testBfake"]) 
+testAfake=bilby.core.prior.JointPrior(dist=fake_dist, name="testAfake", unit="unit")
+testBfake=bilby.core.prior.JointPrior(dist=fake_dist, name="testBfake", unit="unit")
+base_dist = BaseJointPriorDist(names=["testAbase", "testBbase"])
+testAbase=bilby.core.prior.JointPrior(dist=base_dist, name="testAbase", unit="unit")
+testBbase=bilby.core.prior.JointPrior(dist=base_dist, name="testBbase", unit="unit")

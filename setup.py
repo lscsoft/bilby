@@ -41,7 +41,7 @@ setup(
     description="A user-friendly Bayesian inference library",
     long_description=long_description,
     long_description_content_type="text/x-rst",
-    url="https://git.ligo.org/lscsoft/bilby",
+    url="https://github.com/bilby-dev/bilby",
     author="Greg Ashton, Moritz Huebner, Paul Lasky, Colm Talbot",
     author_email="paul.lasky@monash.edu",
     license="MIT",

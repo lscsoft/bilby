@@ -10,5 +10,5 @@ notebooks.
 
 The :code:`basic_tutorial.py` example discussed in arXiv:1811.02042 has been
 renamed to `gw_examples/injection_examples/fast_tutorial.py
-<https://git.ligo.org/lscsoft/bilby/tree/master/examples/gw_examples/injection_examples/fast_tutorial.py>`_.
+<https://github.com/bilby-dev/bilby/tree/master/examples/gw_examples/injection_examples/fast_tutorial.py>`_.
 

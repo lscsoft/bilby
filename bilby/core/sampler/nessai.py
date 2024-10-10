@@ -1,5 +1,6 @@
 import os
 import sys
+import warnings
 
 import numpy as np
 from pandas import DataFrame
@@ -11,6 +12,11 @@ from .base_sampler import NestedSampler, signal_wrapper
 
 class Nessai(NestedSampler):
     """bilby wrapper of nessai (https://github.com/mj-will/nessai)
+
+    .. warning::
+        The nessai sampler interface in bilby is deprecated and will be
+        removed in future release. Please use the :code`nessai-bilby`
+        sampler plugin instead: https://github.com/bilby-dev/nessai-bilby
 
     All positional and keyword arguments passed to `run_sampler` are propagated
     to `nessai.flowsampler.FlowSampler`
@@ -24,6 +30,13 @@ class Nessai(NestedSampler):
     _default_kwargs = None
     _run_kwargs_list = None
     sampling_seed_key = "seed"
+
+    msg = (
+        "The nessai sampler interface in bilby is deprecated and will"
+        " be removed in future release. Please use the `nessai-bilby`"
+        "sampler plugin instead: https://github.com/bilby-dev/nessai-bilby."
+    )
+    warnings.warn(msg, FutureWarning)
 
     @property
     def run_kwargs_list(self):

@@ -99,5 +99,5 @@ Visualising the results
 -----------------------
 Bilby also provides some useful built-in plotting tools. Some examples on how
 to visualise results using these tools (and  how to extend them) are shown in
-one of the tutorials at `visualising_the_results.ipynb  <https://git.ligo.org/lscsoft/bilby/-/blob/master/examples/tutorials/visualising_the_results.ipynb>`_.
+one of the tutorials at `visualising_the_results.ipynb  <https://github.com/bilby-dev/bilby/-/blob/master/examples/tutorials/visualising_the_results.ipynb>`_.
 

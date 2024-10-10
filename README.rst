@@ -9,32 +9,32 @@ Fulfilling all your Bayesian dreams.
 
 Online material to help you get started:
 
--  `Installation instructions <https://lscsoft.docs.ligo.org/bilby/installation.html>`__
--  `Documentation <https://lscsoft.docs.ligo.org/bilby/index.html>`__
+-  `Installation instructions <https://bilby-dev.github.io/bilby/installation.html>`__
+-  `Documentation <https://bilby-dev.github.io/bilby/>`__
 
 If you need help, find an issue, or just have a question/suggestion you can
 
 - Join our `Slack workspace <https://bilby-code.slack.com/>`__ (you may need to email the support desk to request an invite)
-- Email our support desk: contact+lscsoft-bilby-1846-issue-@support.ligo.org
 - Ask questions (or search through other users questions and answers) on `StackOverflow <https://stackoverflow.com/questions/tagged/bilby>`__ using the bilby tag
-- For www.git.ligo.org users, submit issues directly through `the issue tracker <https://git.ligo.org/lscsoft/bilby/issues>`__
-- For www.chat.ligo.org users, join the `#bilby-help <https://chat.ligo.org/ligo/channels/bilby-help>`__ or `#bilby-devel <https://chat.ligo.org/ligo/channels/bilby-devel>`__ channels
+- Submit issues directly through `the issue tracker <https://github.com/bilby-dev/bilby/issues>`__
+- For chat.ligo.org users, join the `#bilby-help <https://chat.ligo.org/ligo/channels/bilby-help>`__ or `#bilby-devel <https://chat.ligo.org/ligo/channels/bilby-devel>`__ channels
+- For LVK-confidential issues, please open `a confidential issue on bilby_pipe <https://github.com/bilby-dev/bilby_pipe/-/issues/new>`__
 
-We encourage you to contribute to the development of bilby. This is done via a merge request.  For
-help in creating a merge request, see `this page
-<https://docs.gitlab.com/ee/gitlab-basics/add-merge-request.html>`__ or contact
-us directly. For advice on contributing, see `the contributing guide <https://git.ligo.org/lscsoft/bilby/blob/master/CONTRIBUTING.md>`__.
+We encourage you to contribute to the development of bilby. This is done via pull request.  For
+help in creating a pull request, see `this page
+<https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request>`__ or contact
+us directly. For advice on contributing, see `the contributing guide <https://github.com/bilby-dev/bilby/blob/main/CONTRIBUTING.md>`__.
 
 
 --------------
 Citation guide
 --------------
 
-Please refer to the `Acknowledging/citing bilby guide <https://lscsoft.docs.ligo.org/bilby/citing-bilby.html>`__.
+Please refer to the `Acknowledging/citing bilby guide <https://bilby-dev.github.io/bilby/citing-bilby.html>`__.
 
-.. |pipeline status| image:: https://git.ligo.org/lscsoft/bilby/badges/master/pipeline.svg
-   :target: https://git.ligo.org/lscsoft/bilby/commits/master
-.. |coverage report| image:: https://git.ligo.org/lscsoft/bilby/badges/master/coverage.svg
+.. |pipeline status| image:: https://github.com/bilby-dev/bilby/actions/workflows/unit-tests.yml/badge.svg
+   :target: https://github.com/bilby-dev/bilby/commits/master
+.. |coverage report| image:: https://github.com/bilby-dev/bilby/badges/master/coverage.svg
    :target: https://lscsoft.docs.ligo.org/bilby/htmlcov/
 .. |pypi| image:: https://badge.fury.io/py/bilby.svg
    :target: https://pypi.org/project/bilby/

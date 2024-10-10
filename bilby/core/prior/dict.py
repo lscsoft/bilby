@@ -8,7 +8,7 @@ import numpy as np
 
 from .analytical import DeltaFunction
 from .base import Prior, Constraint
-from .joint import JointPrior
+from .joint import JointPrior, BaseJointPriorDist
 from ..utils import (
     logger,
     check_directory_exists_and_if_not_mkdir,
@@ -206,7 +206,7 @@ class PriorDict(dict):
         return obj
 
     def from_dictionary(self, dictionary):
-        mvgkwargs = {}
+        jpdkwargs = {}
         for key in list(dictionary.keys()):
             val = dictionary[key]
             if isinstance(val, Prior):
@@ -245,15 +245,12 @@ class PriorDict(dict):
                         raise TypeError("Unable to parse prior class {}".format(cls))
                     else:
                         continue
-                elif cls.__name__ in [
-                    "MultivariateGaussianDist",
-                    "MultivariateNormalDist",
-                ]:
+                elif issubclass(cls, BaseJointPriorDist):
                     dictionary.pop(key)
-                    if key not in mvgkwargs:
-                        mvgkwargs[key] = cls.from_repr(args)
-                elif cls.__name__ in ["MultivariateGaussian", "MultivariateNormal"]:
-                    mgkwargs = {
+                    if key not in jpdkwargs:
+                        jpdkwargs[key] = cls.from_repr(args)
+                elif issubclass(cls, JointPrior):
+                    jpkwargs = {
                         item[0].strip(): cls._parse_argument_string(item[1])
                         for item in cls._split_repr(
                             ", ".join(
@@ -264,16 +261,16 @@ class PriorDict(dict):
                     keymatch = re.match(r"dist=(?P<distkey>\S+),", args)
                     if keymatch is None:
                         raise ValueError(
-                            "'dist' argument for MultivariateGaussian is not specified"
+                            "'dist' argument for JointPrior is not specified"
                         )
 
-                    if keymatch["distkey"] not in mvgkwargs:
+                    if keymatch["distkey"] not in jpdkwargs:
                         raise ValueError(
-                            f"MultivariateGaussianDist {keymatch['distkey']} must be defined before {cls.__name__}"
+                            f"BaseJointPriorDist {keymatch['distkey']} must be defined before {cls.__name__}"
                         )
 
-                    mgkwargs["dist"] = mvgkwargs[keymatch["distkey"]]
-                    dictionary[key] = cls(**mgkwargs)
+                    jpkwargs["dist"] = jpdkwargs[keymatch["distkey"]]
+                    dictionary[key] = cls(**jpkwargs)
                 else:
                     try:
                         dictionary[key] = cls.from_repr(args)

@@ -81,7 +81,7 @@ A list of available samplers can be produced using
 :py:func:`bilby.core.sampler.get_implemented_samplers`.
 This will list native bilby samplers and any samplers available via a plugin.
 If a plugin provides a sampler that is also implemented in bilby, the bilby
-implementation will be labeled with the prfix `bilby.` to distinguish it from
+implementation will be labeled with the prefix `bilby.` to distinguish it from
 the plugin version. See `sampler plugins`_ for more details.
 
 
@@ -107,10 +107,15 @@ installed using
    $ pip install -r sampler_requirements.txt
 
 where the file `sampler_requirements.txt
-<https://git.ligo.org/lscsoft/bilby/blob/master/sampler_requirements.txt>`_ can
+<https://github.com/bilby-dev/bilby/blob/main/sampler_requirements.txt>`_ can
 be found in the at the top-level of `the repository
-<https://git.ligo.org/lscsoft/bilby>`_ (Note: if you installed from pip, you
+<https://github.com/bilby-dev/bilby>`_ (Note: if you installed from pip, you
 can simply download that file and use the command above).
+
+.. note::
+
+   Some samplers are being migrated to use sampler plugins and may require an
+   additional step, see `migrating to sampler plugins`_.
 
 
 Installing PyPolyChord
@@ -173,8 +178,30 @@ replacing the path where appropriate)
 Adding new samplers to bilby
 ----------------------------
 
-We actively encourage the addition of new samplers to :code:`bilby`. To help
-enable this, we have base classes which can be subclassed. Below we provide the
-API for reference, note that the :code:`NestedSampler` and :code:`MCMCSampler`
-inherit from the :code:`Sampler` class.
+We actively encourage the addition of new samplers to :code:`bilby`.
+We now recommended adding support for new samplers via the sampler plugins
+interface. For more details, and a template, see `sampler plugins`_.
 
+----------------------------
+Migrating to sampler plugins
+----------------------------
+
+The interfaces for some samplers are being move from bilby to external sampler
+plugins. This does not change how the samplers are used for most users, you
+still specify :code:`sampler='sampler name'` in :code:`run_sampler`, however,
+an additional dependency must be installed before using a sampler.
+
+.. note::
+   Samplers that are scheduled to be moved will print a warning when using them.
+
+For example, the :code:`nessai` sampler interface has been moved to a plugin.
+In order for a user to continue using this sampler, they must install the
+`nessai-bilby` `plugin <https://github.com/bilby-dev/nessai-bilby>`_ which is
+available via PyPI and conda. Once this package is installed, the new interface
+will automatically be used instead of the native bilby interface.
+
+.. warning::
+   Some samplers may require additional installation steps.
+
+For more details about how sampler plugins, including a list of available
+sampler plugins, see `sampler plugins`_.

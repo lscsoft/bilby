@@ -20,7 +20,7 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
-    container: containers.ligo.org/lscsoft/bilby/v2-bilby-python311
+    container: ghcr.io/bilby-dev/bilby-python311:latest
     strategy:
       fail-fast: false
 

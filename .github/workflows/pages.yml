@@ -4,6 +4,7 @@ permissions:
   contents: read
   pages: write
   id-token: write
+  packages: read
 
 on:
   push:
@@ -21,7 +22,7 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
-    container: containers.ligo.org/lscsoft/bilby/v2-bilby-python311
+    container: ghcr.io/bilby-dev/bilby-python311:latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4

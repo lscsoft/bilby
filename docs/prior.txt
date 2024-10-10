@@ -110,13 +110,12 @@ You can define your own by subclassing the :code:`bilby.prior.Prior` class.
 Prior Constraints
 -----------------
 
-Added v. 0.4.3
-
 This allows cuts to be specified in the prior space.
 
 You can provide the `PriorDict` a `conversion_function` and a set of `Constraint` priors to remove parts of the prior space.
 
-*Note*: after doing this the prior probability will not be normalised.
+When using constraints, the normalization constant is estimated to ensure the priors are still correctly normalized.
+
 
 Simple example
 ==============

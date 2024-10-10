@@ -57,7 +57,7 @@ Clone the repository, install the requirements, and then install the software:
 
 .. code-block:: console
 
-   $ git clone git@git.ligo.org:lscsoft/bilby.git
+   $ git clone git@git@github.com:bilby-dev/bilby.git
    $ cd bilby/
    $ pip install -r requirements.txt
    $ pip install .
@@ -75,20 +75,6 @@ try to run the examples.
    to fetch the tags so that when you install from source your version information is up to date. 
 
 .. note::
-   If you do not have a git.ligo account, and receive an error message:
-
-   .. code-block:: console
-
-      git@git.ligo.org: Permission denied (publickey,gssapi-keyex,gssapi-with-mic).
-      fatal: Could not read from remote repository.
-
-   Then you need to use the HTTPS URL, e.g., replace the first line above with
-
-   .. code-block:: console
-
-      $ git clone https://git.ligo.org/lscsoft/bilby.git
-
-.. note::
    You may be use to using :code:`$ python setup.py install` to install software
    from source. While it is possible to do this, current recommentations from
    the python community (see, e.g. `this site <https://python3statement.org/practicalities/>`_
@@ -99,11 +85,11 @@ Installing optional requirements
 ================================
 
 The `requirements.txt
-<https://git.ligo.org/lscsoft/bilby/blob/master/requirements.txt>`_ is a
+<https://github.com/bilby-dev/bilby/blob/main/requirements.txt>`_ is a
 minimal set of requirements for using :code:`bilby`. Additionally, we provide:
 
 1. The file `optional_requirements.txt
-<https://git.ligo.org/lscsoft/bilby/blob/master/optional_requirements.txt>`_
+<https://github.com/bilby-dev/bilby/blob/main/optional_requirements.txt>`_
 which you should install if you plan to use :code:`bilby` for
 gravitational-wave data analysis.
 

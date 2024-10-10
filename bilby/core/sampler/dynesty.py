@@ -892,7 +892,7 @@ class Dynesty(NestedSampler):
             except Exception as e:
                 logger.warning(
                     f"Unexpected error {e} in dynesty plotting. "
-                    "Please report at git.ligo.org/lscsoft/bilby/-/issues"
+                    "Please report at github.com/bilby-dev/bilby/issues"
                 )
             finally:
                 plt.close("all")
@@ -918,7 +918,7 @@ class Dynesty(NestedSampler):
             except Exception as e:
                 logger.warning(
                     f"Unexpected error {e} in dynesty plotting. "
-                    "Please report at git.ligo.org/lscsoft/bilby/-/issues"
+                    "Please report at github.com/bilby-dev/bilby/issues"
                 )
             finally:
                 plt.close("all")
@@ -940,7 +940,7 @@ class Dynesty(NestedSampler):
             except Exception as e:
                 logger.warning(
                     f"Unexpected error {e} in dynesty plotting. "
-                    "Please report at git.ligo.org/lscsoft/bilby/-/issues"
+                    "Please report at github.com/bilby-dev/bilby/issues"
                 )
             finally:
                 plt.close("all")
@@ -957,7 +957,7 @@ class Dynesty(NestedSampler):
             except Exception as e:
                 logger.warning(
                     f"Unexpected error {e} in dynesty plotting. "
-                    "Please report at git.ligo.org/lscsoft/bilby/-/issues"
+                    "Please report at github.com/bilby-dev/bilby/issues"
                 )
             finally:
                 plt.close("all")
