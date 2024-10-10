@@ -294,7 +294,8 @@ class Cosmological(Interped):
 
     def get_instantiation_dict(self):
         from astropy import units
-        from astropy.cosmology.realizations import available
+        from .cosmology import get_available_cosmologies
+        available = get_available_cosmologies()
         instantiation_dict = super().get_instantiation_dict()
         if self.cosmology.name in available:
             instantiation_dict['cosmology'] = self.cosmology.name
