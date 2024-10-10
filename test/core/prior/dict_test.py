@@ -609,5 +609,24 @@ class TestFillPrior(unittest.TestCase):
         self.assertIsInstance(self.priors["ra"], bilby.core.prior.Uniform)
 
 
+class TestLoadPriorWithCosmologicalParameters(unittest.TestCase):
+
+    def test_load(self):
+        prior_file = os.path.join(
+            os.path.dirname(os.path.realpath(__file__)),
+            "prior_files/prior_with_cosmo_params.prior"
+        )
+        prior_dict = bilby.gw.prior.BBHPriorDict(filename=prior_file)
+        cosmology = prior_dict["luminosity_distance"].cosmology
+        # These values are based on Plank15_LAL as defined in:
+        # https://dcc.ligo.org/DocDB/0167/T2000185/005/LVC_symbol_convention.pdf
+        self.assertEqual(cosmology.H0.value, 67.90)
+        self.assertEqual(cosmology.Om0, 0.3065)
+
+        dl = 1000.0
+        ln_prob = prior_dict["luminosity_distance"].ln_prob(dl)
+        self.assertEqual(ln_prob, -9.360343006800193)
+
+
 if __name__ == "__main__":
     unittest.main()

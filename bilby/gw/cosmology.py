@@ -38,8 +38,18 @@ def get_cosmology(cosmology=None):
     _set_default_cosmology()
     if cosmology is None:
         cosmology = DEFAULT_COSMOLOGY
+    elif isinstance(cosmology, cosmo.FLRW):
+        cosmology = cosmology
     elif isinstance(cosmology, str):
         cosmology = getattr(cosmo, cosmology)
+    elif isinstance(cosmology, dict):
+        if 'Ode0' in cosmology.keys():
+            if 'w0' in cosmology.keys():
+                cosmology = cosmo.wCDM(**cosmology)
+            else:
+                cosmology = cosmo.LambdaCDM(**cosmology)
+        else:
+            cosmology = cosmo.FlatLambdaCDM(**cosmology)
     return cosmology
 
 
@@ -58,22 +68,7 @@ def set_cosmology(cosmology=None):
             Dictionary with arguments required to instantiate the cosmology
             class.
     """
-    from astropy import cosmology as cosmo
-    _set_default_cosmology()
-    if cosmology is None:
-        cosmology = DEFAULT_COSMOLOGY
-    elif isinstance(cosmology, cosmo.FLRW):
-        cosmology = cosmology
-    elif isinstance(cosmology, str):
-        cosmology = getattr(cosmo, cosmology)
-    elif isinstance(cosmology, dict):
-        if 'Ode0' in cosmology.keys():
-            if 'w0' in cosmology.keys():
-                cosmology = cosmo.wCDM(**cosmology)
-            else:
-                cosmology = cosmo.LambdaCDM(**cosmology)
-        else:
-            cosmology = cosmo.FlatLambdaCDM(**cosmology)
+    cosmology = get_cosmology(cosmology)
     COSMOLOGY[0] = cosmology
     if cosmology.name is not None:
         COSMOLOGY[1] = cosmology.name

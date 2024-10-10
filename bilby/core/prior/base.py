@@ -363,12 +363,13 @@ class Prior(object):
         args = string.split(',')
         remove = list()
         for ii, key in enumerate(args):
-            if '(' in key:
-                jj = ii
-                while ')' not in args[jj]:
-                    jj += 1
-                    args[ii] = ','.join([args[ii], args[jj]]).strip()
-                    remove.append(jj)
+            for paren_pair in ['()', '{}', '[]']:
+                if paren_pair[0] in key:
+                    jj = ii
+                    while paren_pair[1] not in args[jj]:
+                        jj += 1
+                        args[ii] = ','.join([args[ii], args[jj]]).strip()
+                        remove.append(jj)
         remove.reverse()
         for ii in remove:
             del args[ii]
