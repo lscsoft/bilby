@@ -14,7 +14,7 @@ Online material to help you get started:
 
 If you need help, find an issue, or just have a question/suggestion you can
 
-- Join our `Slack workspace <https://bilby-code.slack.com/>`__ (you may need to email the support desk to request an invite)
+- Join our `Slack workspace <https://bilby-code.slack.com/>`__ via this `invite link <https://join.slack.com/t/bilby-code/shared_invite/zt-2s5a0jy1g-xB7uIy1fGGxW0CkBwwTbWQp>`__
 - Ask questions (or search through other users questions and answers) on `StackOverflow <https://stackoverflow.com/questions/tagged/bilby>`__ using the bilby tag
 - Submit issues directly through `the issue tracker <https://github.com/bilby-dev/bilby/issues>`__
 - For chat.ligo.org users, join the `#bilby-help <https://chat.ligo.org/ligo/channels/bilby-help>`__ or `#bilby-devel <https://chat.ligo.org/ligo/channels/bilby-devel>`__ channels
