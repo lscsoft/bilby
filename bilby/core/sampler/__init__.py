@@ -164,13 +164,13 @@ def run_sampler(
     injection_parameters=None,
     conversion_function=None,
     plot=False,
-    default_priors_file=None,
     clean=None,
     meta_data=None,
     save=True,
     gzip=False,
     result_class=None,
     npool=1,
+    npool_post_process=None,
     **kwargs,
 ):
     """
@@ -209,9 +209,6 @@ def run_sampler(
         This function should take one positional argument, a dictionary or
         pandas dataframe and three optional arguments: the likelihood, prior
         dict, and an integer :code:`npool` to allow parallelisation.
-    default_priors_file: str
-        If given, a file containing the default priors; otherwise defaults to
-        the bilby defaults for a binary black hole.
     clean: bool
         If given, override the command line interface `clean` option.
     meta_data: dict
@@ -232,6 +229,10 @@ def run_sampler(
     npool: int
         An integer specifying the available CPUs to create pool objects for
         parallelization.
+    npool_post_process: int, optional
+        An integer specifying the available CPUs to use during the
+        post-processing step. If None, will use the value of npool or
+        check for sampler specific post-processing npool keys in kwargs.
     **kwargs:
         All kwargs are passed directly to the samplers `run` function
 
@@ -362,11 +363,20 @@ def run_sampler(
 
     # Check if the posterior has already been created
     if getattr(result, "_posterior", None) is None:
+        if npool_post_process is None:
+
+            for key in Sampler.npool_equiv_kwargs:
+                if key in kwargs:
+                    npool_post_process = kwargs[key]
+                    break
+            else:
+                npool_post_process = npool
+
         result.samples_to_posterior(
             likelihood=likelihood,
             priors=result.priors,
             conversion_function=conversion_function,
-            npool=npool,
+            npool=npool_post_process,
         )
 
     if save:
