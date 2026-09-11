@@ -69,14 +69,50 @@ class PriorDict(dict):
         super().__setitem__(key, value)
 
     @xp_wrap
-    def evaluate_constraints(self, sample, *, xp=None):
-        out_sample = self.conversion_function(sample)
+    def evaluate_constraints(self, sample, *, strict=None, xp=None):
+        """Evaluate the constraints for a given sample.
+
+        Applies the conversion function to the sample and evaluates the
+        constraints on the converted sample.
+
+        Parameters
+        ==========
+        sample: dict
+            Dictionary of parameters used to evaluate the constraints.
+        strict: bool or None, optional
+            When True, raise if a constraint cannot be evaluated from the
+            provided sample. When False, skip constraints that cannot be
+            derived from a partial sample. By default, complete samples are
+            evaluated strictly while partial samples are evaluated non-strictly.
+
+        Raises
+        ======
+        ValueError:
+            If a constraint parameter is not present in the sample after
+            conversion and ``strict`` is True.
+        """
+        if strict is None:
+            strict = self._is_complete_sample(sample)
+
+        try:
+            out_sample = self.conversion_function(sample)
+        except KeyError:
+            if strict:
+                raise
+            out_sample = sample.copy()
         try:
             prob = xp.ones_like(next(iter(out_sample.values())), dtype=bool)
         except TypeError:
             prob = xp.ones_like(out_sample, dtype=bool)
         for key in self:
-            if isinstance(self[key], Constraint) and key in out_sample:
+            if isinstance(self[key], Constraint):
+                if key not in out_sample:
+                    if not strict:
+                        continue
+                    raise ValueError(
+                        f"Constraint {key} is not present in the sample. "
+                        "Cannot evaluate constraints."
+                    )
                 prob *= self[key].prob(out_sample[key])
         return prob
 
@@ -448,6 +484,14 @@ class PriorDict(dict):
     def constraint_keys(self):
         return [k for k, p in self.items() if isinstance(p, Constraint)]
 
+    def _is_complete_sample(self, sample):
+        sampled_prior_keys = {
+            key
+            for key, prior in self.items()
+            if isinstance(prior, Prior) and not isinstance(prior, Constraint)
+        }
+        return sampled_prior_keys.issubset(set(sample.keys()))
+
     def sample_subset_constrained(self, keys=iter([]), size=None, *, random_state=None):
         """
         Sample a subset of priors while ensuring constraints are satisfied.
@@ -483,7 +527,10 @@ class PriorDict(dict):
         if size is None or size == 1:
             while True:
                 sample = self.sample_subset(keys=keys, size=size, random_state=rng)
-                is_valid = self.evaluate_constraints(sample)
+                is_valid = self.evaluate_constraints(
+                    sample,
+                    strict=self._is_complete_sample(sample),
+                )
                 n_tested_samples += 1
                 n_valid_samples += int(is_valid.item())
                 check_efficiency(n_tested_samples, n_valid_samples)
@@ -497,9 +544,10 @@ class PriorDict(dict):
             xp = random_array_module(random_state)
             all_samples = {key: xp.asarray([]) for key in keys}
             _first_key = list(all_samples.keys())[0]
+            strict = self._is_complete_sample(all_samples)
             while len(all_samples[_first_key]) < needed:
                 samples = self.sample_subset(keys=keys, size=needed, random_state=rng)
-                keep = self.evaluate_constraints(samples)
+                keep = self.evaluate_constraints(samples, strict=strict)
                 for key in keys:
                     all_samples[key] = xp.hstack(
                         [all_samples[key], samples[key][keep].flatten()]
@@ -538,9 +586,6 @@ class PriorDict(dict):
     def _estimate_normalization(self, keys, min_accept, sampling_chunk):
         samples = self.sample_subset(keys=keys, size=sampling_chunk)
         keep = np.atleast_1d(self.evaluate_constraints(samples))
-        if len(keep) == 1:
-            self._cached_normalizations[keys] = 1
-            return 1
         all_samples = {key: np.array([]) for key in keys}
         while np.count_nonzero(keep) < min_accept:
             samples = self.sample_subset(keys=keys, size=sampling_chunk)
