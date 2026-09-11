@@ -266,5 +266,15 @@ class TestWeightedCategoricalPrior(unittest.TestCase):
         self.assertEqual(type(new), type(original))
 
 
+@pytest.mark.parametrize("alpha", [-1, -0.5, 0, 1, 2])
+def test_powerlaw_small_values(xp, alpha):
+    prior = bilby.core.prior.PowerLaw(alpha=alpha, minimum=1e-10, maximum=1)
+    val = xp.array([1e-10, 1e-5, 1e-1])
+    prob = prior.prob(val)
+    ln_prob = prior.ln_prob(val)
+    assert xp.all(xp.isfinite(prob[val >= prior.minimum]))
+    assert xp.all(xp.isfinite(ln_prob[val >= prior.minimum]))
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -21,6 +21,7 @@ from ...compat.utils import xp_wrap
 
 class Prior(object):
     _default_latex_labels = {}
+    _leaves = []
 
     def __init__(self, name=None, latex_label=None, unit=None, minimum=-np.inf,
                  maximum=np.inf, check_range_nonzero=True, boundary=None):
@@ -505,6 +506,8 @@ class Prior(object):
 
 
 class Constraint(Prior):
+
+    _leaves = ["_minimum", "_maximum"]
 
     def __init__(self, minimum, maximum, name=None, latex_label=None,
                  unit=None):

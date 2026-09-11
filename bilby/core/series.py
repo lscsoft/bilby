@@ -1,7 +1,7 @@
 from . import utils
 
 
-class CoupledTimeAndFrequencySeries(object):
+class CoupledTimeAndFrequencySeries:
 
     def __init__(self, duration=None, sampling_frequency=None, start_time=0):
         """ A waveform generator
@@ -36,7 +36,7 @@ class CoupledTimeAndFrequencySeries(object):
         array_like: The frequency array
         """
         if not self._frequency_array_updated:
-            if self.sampling_frequency and self.duration:
+            if self.sampling_frequency is not None and self.duration is not None:
                 self._frequency_array = utils.create_frequency_series(
                     sampling_frequency=self.sampling_frequency,
                     duration=self.duration)

@@ -188,7 +188,7 @@ class WaveformGenerator(object):
             and self._cache['transformed_model'] == transformed_model
         ):
             return self._cache['waveform']
-        else:
+        elif self.use_cache:
             self._cache['parameters'] = parameters.copy()
             self._cache['model'] = model
             self._cache['transformed_model'] = transformed_model
@@ -205,7 +205,8 @@ class WaveformGenerator(object):
             )
         else:
             raise RuntimeError("No source model given")
-        self._cache['waveform'] = model_strain
+        if self.use_cache:
+            self._cache['waveform'] = model_strain
         return model_strain
 
     def _strain_from_model(self, model_data_points, model, parameters, *, xp=None):

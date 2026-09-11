@@ -1,3 +1,5 @@
+import array_api_compat as aac
+import array_api_extra as xpx
 import numpy as np
 from scipy.integrate import trapezoid
 
@@ -8,6 +10,20 @@ from ...compat.utils import xp_wrap
 
 
 class Interped(Prior):
+
+    _leaves = [
+        "xx",
+        "_yy",
+        "YY",
+        "_minimum",
+        "_maximum",
+        "min_limit",
+        "max_limit",
+        "probability_density",
+        "cumulative_distribution",
+        "inverse_cumulative_distribution",
+        "_all_interpolated",
+    ]
 
     def __init__(self, xx, yy, minimum=np.nan, maximum=np.nan, name=None,
                  latex_label=None, unit=None, boundary=None):
@@ -52,7 +68,7 @@ class Interped(Prior):
         self.probability_density = None
         self.cumulative_distribution = None
         self.inverse_cumulative_distribution = None
-        self.__all_interpolated = interp1d(x=xx, y=yy, bounds_error=False, fill_value=0)
+        self._all_interpolated = interp1d(x=xx, y=yy, bounds_error=False, fill_value=0)
         minimum = float(np.nanmax(np.array((min(xx), minimum))))
         maximum = float(np.nanmin(np.array((max(xx), maximum))))
         super(Interped, self).__init__(name=name, latex_label=latex_label, unit=unit,
@@ -155,12 +171,13 @@ class Interped(Prior):
     @yy.setter
     def yy(self, yy):
         self._yy = yy
-        self.__all_interpolated = interp1d(x=self.xx, y=self._yy, bounds_error=False, fill_value=0)
+        self._all_interpolated = interp1d(x=self.xx, y=self._yy, bounds_error=False, fill_value=0)
         self._update_instance()
 
     def _update_instance(self):
-        self.xx = np.linspace(self.minimum, self.maximum, len(self.xx))
-        self._yy = self.__all_interpolated(self.xx)
+        xp = aac.array_namespace(self.xx)
+        self.xx = xp.linspace(self.minimum, self.maximum, len(self.xx))
+        self._yy = self._all_interpolated(self.xx)
         self._initialize_attributes()
 
     def _initialize_attributes(self):
@@ -170,13 +187,15 @@ class Interped(Prior):
         self._yy /= trapezoid(self._yy, self.xx)
         self.YY = cumulative_trapezoid(self._yy, self.xx, initial=0)
         # Need last element of cumulative distribution to be exactly one.
-        self.YY[-1] = 1
+        self.YY = xpx.at(self.YY, -1).set(1)
         self.probability_density = interp1d(x=self.xx, y=self._yy, bounds_error=False, fill_value=0)
         self.cumulative_distribution = interp1d(x=self.xx, y=self.YY, bounds_error=False, fill_value=(0, 1))
         self.inverse_cumulative_distribution = interp1d(x=self.YY, y=self.xx, bounds_error=True)
 
 
 class FromFile(Interped):
+
+    _leaves = Interped._leaves + ["file_name"]
 
     def __init__(self, file_name, minimum=None, maximum=None, name=None,
                  latex_label=None, unit=None, boundary=None):
@@ -210,3 +229,13 @@ class FromFile(Interped):
             logger.warning("Can't load {}.".format(self.file_name))
             logger.warning("Format should be:")
             logger.warning(r"x\tp(x)")
+
+    def pytree_flatten(self):
+        children, aux_data = super().pytree_flatten()
+        aux_data += (self.file_name,)
+        return children, aux_data
+
+    def pytree_unflatten(self, aux_data, children):
+        prior = super().pytree_unflatten(aux_data[:-1], children)
+        prior.filename = aux_data[-1]
+        return prior

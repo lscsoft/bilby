@@ -650,7 +650,7 @@ class InterferometerStrainData(object):
             'power_spectal_density')
         frequency_domain_strain, frequency_array = \
             power_spectral_density.get_noise_realisation(
-                self.frequency_array.shape[0], self.duration, random_state=random_state)
+                self.frequency_array.shape[0], duration, random_state=random_state)
 
         xp = aac.array_namespace(frequency_domain_strain)
         self._frequency_array = xp.asarray(self.frequency_array)

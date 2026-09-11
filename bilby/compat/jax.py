@@ -1,6 +1,7 @@
 import jax
 import jax.numpy as jnp
 from ..core.likelihood import Likelihood
+from . import pytrees  # noqa
 
 
 class JittedLikelihood(Likelihood):

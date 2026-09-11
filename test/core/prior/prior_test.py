@@ -1,8 +1,10 @@
+import os
+import unittest
+from copy import deepcopy
+
 import array_api_compat as aac
 import bilby
-import unittest
 import numpy as np
-import os
 import pytest
 import scipy.stats as ss
 from scipy.integrate import trapezoid
@@ -267,6 +269,30 @@ class TestPriorClasses(unittest.TestCase):
 
     def tearDown(self):
         del self.priors
+
+    def test_jits(self):
+        if not aac.is_jax_namespace(self.xp):
+            pytest.skip("Jitting test only works with JAX")
+
+        import jax
+        from bilby.compat import pytrees  # noqa
+
+        @jax.jit
+        def evaluate_prior(prior_, val):
+            return prior_.prob(val)
+
+        for prior in self.priors:
+            if isinstance(prior, bilby.core.prior.JointPrior):
+                continue
+            cache_size = evaluate_prior._cache_size()
+            sample = jax.numpy.asarray(prior.sample(3))
+            evaluate_prior(prior, sample)
+            alt_prior = deepcopy(prior)
+            sample = jax.numpy.asarray(alt_prior.sample(3))
+            evaluate_prior(alt_prior, sample)
+            new_cache_size = evaluate_prior._cache_size()
+            message = f"Cache size increased by more than 1 for {prior.__class__.__name__}"
+            assert new_cache_size <= cache_size + 1, message
 
     def _validate_return_type(self, val):
         if not isinstance(val, (int, float)):

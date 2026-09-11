@@ -15,7 +15,7 @@ from ..core.prior import (
     ConditionalPriorDict, ConditionalBasePrior, BaseJointPriorDist, JointPrior,
     JointPriorDistError,
 )
-from ..core.utils import infer_args_from_method, logger, random, WrappedInterp1d as interp1d
+from ..core.utils import infer_args_from_method, logger, random, interp1d
 from .conversion import (
     convert_to_lal_binary_black_hole_parameters,
     convert_to_lal_binary_neutron_star_parameters, generate_mass_parameters,
@@ -362,6 +362,8 @@ class UniformInComponentsChirpMass(PowerLaw):
     :code:`bilby.gw.prior.UniformInComponentsMassRatio`.
     """
 
+    _leaves = ["_minimum", "_maximum", "alpha"]
+
     def __init__(self, minimum, maximum, name='chirp_mass',
                  latex_label=r'$\mathcal{M}$', unit=None, boundary=None):
         """
@@ -397,6 +399,8 @@ class UniformInComponentsMassRatio(Prior):
     This prior is intended to be used in conjunction with the corresponding
     :code:`bilby.gw.prior.UniformInComponentsChirpMass`.
     """
+
+    _leaves = ["norm", "icdf"]
 
     def __init__(self, minimum, maximum, name='mass_ratio', latex_label='$q$',
                  unit=None, boundary=None, equal_mass=False):
@@ -471,6 +475,8 @@ class AlignedSpin(Interped):
     For the simple case of uniform in magnitude and orientation priors, we use an
     analytic form of the PDF.
     """
+
+    _leaves = Interped._leaves + ["a_prior", "z_prior"]
 
     def __init__(
         self,

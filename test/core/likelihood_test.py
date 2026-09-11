@@ -1,4 +1,5 @@
 import unittest
+from copy import deepcopy
 from unittest import mock
 
 import array_api_compat as aac
@@ -19,6 +20,35 @@ from bilby.core.likelihood import (
     AnalyticalMultidimensionalBimodalCovariantGaussian,
     JointLikelihood,
 )
+
+
+def _evaluate_with_jit(likelihood, parameters, xp):
+    if not aac.is_jax_namespace(xp):
+        pytest.skip("JIT test only runs for JAX backend")
+
+    import jax
+
+    from bilby.compat.pytrees import likelihood as _  # noqa
+
+    @jax.jit
+    def jit_fn(likelihood, parameters):
+        return likelihood.log_likelihood(parameters)
+
+    expected = likelihood.log_likelihood(parameters)
+
+    cache_size = jit_fn._cache_size()
+    # call the function twice so that we test with and without compilation
+    jitted = jit_fn(likelihood, parameters)
+    jitted = jit_fn(likelihood, parameters)
+    assert xp.abs(expected - jitted) < 1e-12
+
+    # call with a copy of the likelihood to make sure it doesn't retrigger a compilation
+    alt_likelihood = deepcopy(likelihood)
+    new_value = jit_fn(alt_likelihood, parameters)
+
+    new_cache_size = jit_fn._cache_size()
+    assert new_cache_size <= cache_size + 1, "Cache size increased by more than 1"
+    assert new_value == jitted
 
 
 class TestLikelihoodBase(unittest.TestCase):
@@ -182,8 +212,12 @@ class TestGaussianLikelihood(unittest.TestCase):
         del self.y
         del self.function
 
+    @property
+    def default_likelihood(self):
+        return GaussianLikelihood(self.x, self.y, self.function, self.sigma)
+
     def test_known_sigma(self):
-        likelihood = GaussianLikelihood(self.x, self.y, self.function, self.sigma)
+        likelihood = self.default_likelihood
         parameters = dict(m=2, c=0)
         likelihood.log_likelihood(parameters)
         self.assertEqual(likelihood.sigma, self.sigma)
@@ -214,16 +248,19 @@ class TestGaussianLikelihood(unittest.TestCase):
             likelihood.sigma = "test"
 
     def test_repr(self):
-        likelihood = GaussianLikelihood(self.x, self.y, self.function, sigma=self.sigma)
+        likelihood = self.default_likelihood
         expected = "GaussianLikelihood(x={}, y={}, func={}, sigma={})".format(
             self.x, self.y, self.function.__name__, self.sigma
         )
         self.assertEqual(expected, repr(likelihood))
 
     def test_return_class(self):
-        likelihood = GaussianLikelihood(self.x, self.y, self.function, self.sigma)
+        likelihood = self.default_likelihood
         logl = likelihood.log_likelihood(self.parameters)
         self.assertEqual(aac.get_namespace(logl), self.xp)
+
+    def test_jitted_likelihood(self):
+        _evaluate_with_jit(self.default_likelihood, self.parameters, self.xp)
 
 
 @pytest.mark.array_backend
@@ -249,10 +286,12 @@ class TestStudentTLikelihood(unittest.TestCase):
         del self.y
         del self.function
 
+    @property
+    def default_likelihood(self):
+        return StudentTLikelihood(self.x, self.y, self.function, self.nu, self.sigma)
+
     def test_known_sigma(self):
-        likelihood = StudentTLikelihood(
-            self.x, self.y, self.function, self.nu, self.sigma
-        )
+        likelihood = self.default_likelihood
         parameters = dict(m=2, c=0)
         likelihood.log_likelihood(parameters)
         self.assertEqual(likelihood.sigma, self.sigma)
@@ -300,6 +339,9 @@ class TestStudentTLikelihood(unittest.TestCase):
         )
         self.assertEqual(expected, repr(likelihood))
 
+    def test_jitted_likelihood(self):
+        _evaluate_with_jit(self.default_likelihood, self.parameters, self.xp)
+
 
 @pytest.mark.array_backend
 @pytest.mark.usefixtures("xp_class")
@@ -322,6 +364,7 @@ class TestPoissonLikelihood(unittest.TestCase):
         self.function = test_function
         self.function_array = test_function_array
         self.poisson_likelihood = PoissonLikelihood(self.x, self.y, self.function)
+        self.parameters = dict(c=self.xp.asarray(2.0))
         self.bad_parameters = dict(c=self.xp.asarray(-2.0))
 
     def tearDown(self):
@@ -351,6 +394,9 @@ class TestPoissonLikelihood(unittest.TestCase):
             self.poisson_likelihood.log_likelihood(parameters)
 
     def test_neg_rate_array(self):
+        if aac.is_jax_namespace(self.xp):
+            pytest.skip("JAX doesn't raise an error here")
+
         likelihood = PoissonLikelihood(self.x, self.y, self.function_array)
         parameters = dict(c=-2)
         with self.assertRaises(ValueError):
@@ -388,15 +434,18 @@ class TestPoissonLikelihood(unittest.TestCase):
             poisson_likelihood.log_likelihood(dict())
 
     def test_log_likelihood_negative_func_return_element(self):
+        if aac.is_jax_namespace(self.xp):
+            pytest.skip("JAX doesn't raise an error here")
+
         poisson_likelihood = PoissonLikelihood(
-            x=self.x, y=self.y, func=lambda x: self.xp.asarray([3, 6, -2])
+            x=self.x, y=self.y, func=lambda x: xpx.at(self.x, -1).set(-1)
         )
         with self.assertRaises(ValueError):
             poisson_likelihood.log_likelihood(dict())
 
     def test_log_likelihood_zero_func_return_element(self):
         poisson_likelihood = PoissonLikelihood(
-            x=self.x, y=self.y, func=lambda x: self.xp.asarray([3, 6, 0])
+            x=self.x, y=self.y, func=lambda x: xpx.at(self.x, -1).set(0)
         )
         self.assertEqual(-np.inf, poisson_likelihood.log_likelihood(dict()))
 
@@ -415,6 +464,9 @@ class TestPoissonLikelihood(unittest.TestCase):
             self.x, self.y, self.function.__name__
         )
         self.assertEqual(expected, repr(likelihood))
+
+    def test_jitted_likelihood(self):
+        _evaluate_with_jit(self.poisson_likelihood, self.parameters, self.xp)
 
 
 @pytest.mark.array_backend
@@ -439,7 +491,12 @@ class TestExponentialLikelihood(unittest.TestCase):
         self.exponential_likelihood = ExponentialLikelihood(
             x=self.x, y=self.y, func=self.function
         )
+        self.parameters = dict(c=self.xp.asarray(1.0))
         self.bad_parameters = dict(c=self.xp.asarray(-1.0))
+
+    @property
+    def default_likelihood(self):
+        return ExponentialLikelihood(self.x, self.y, self.function)
 
     def tearDown(self):
         del self.N
@@ -455,7 +512,7 @@ class TestExponentialLikelihood(unittest.TestCase):
             ExponentialLikelihood(self.x, self.yneg, self.function)
 
     def test_negative_function(self):
-        likelihood = ExponentialLikelihood(self.x, self.y, self.function)
+        likelihood = self.default_likelihood
         parameters = dict(c=-1)
         self.assertEqual(likelihood.log_likelihood(parameters), -np.inf)
 
@@ -513,6 +570,9 @@ class TestExponentialLikelihood(unittest.TestCase):
         )
         self.assertEqual(expected, repr(self.exponential_likelihood))
 
+    def test_jitted_likelihood(self):
+        _evaluate_with_jit(self.default_likelihood, self.parameters, self.xp)
+
 
 @pytest.mark.array_backend
 @pytest.mark.usefixtures("xp_class")
@@ -528,6 +588,7 @@ class TestAnalyticalMultidimensionalCovariantGaussian(unittest.TestCase):
         self.likelihood = AnalyticalMultidimensionalCovariantGaussian(
             mean=self.mean, cov=self.cov
         )
+        self.parameters = {f"x{ii}": self.xp.asarray(9.0) for ii in range(3)}
 
     def tearDown(self):
         del self.cov
@@ -558,6 +619,9 @@ class TestAnalyticalMultidimensionalCovariantGaussian(unittest.TestCase):
         )
         self.assertEqual(aac.get_namespace(logl), self.xp)
 
+    def test_jitted_likelihood(self):
+        _evaluate_with_jit(self.likelihood, self.parameters, self.xp)
+
 
 @pytest.mark.array_backend
 @pytest.mark.usefixtures("xp_class")
@@ -575,6 +639,7 @@ class TestAnalyticalMultidimensionalBimodalCovariantGaussian(unittest.TestCase):
         self.likelihood = AnalyticalMultidimensionalBimodalCovariantGaussian(
             mean_1=self.mean_1, mean_2=self.mean_2, cov=self.cov
         )
+        self.parameters = {f"x{ii}": self.xp.asarray(9.0) for ii in range(3)}
 
     def tearDown(self):
         del self.cov
@@ -607,11 +672,16 @@ class TestAnalyticalMultidimensionalBimodalCovariantGaussian(unittest.TestCase):
             likelihood.log_likelihood(dict(x0=self.xp.asarray(0.0))),
         )
 
+    def test_jitted_likelihood(self):
+        _evaluate_with_jit(self.likelihood, self.parameters, self.xp)
 
+
+@pytest.mark.array_backend
+@pytest.mark.usefixtures("xp_class")
 class TestJointLikelihood(unittest.TestCase):
     def setUp(self):
-        self.x = np.array([1, 2, 3])
-        self.y = np.array([1, 2, 3])
+        self.x = self.xp.asarray([1, 2, 3])
+        self.y = self.xp.asarray([1, 2, 3])
         self.first_likelihood = GaussianLikelihood(
             x=self.x,
             y=self.y,
@@ -686,6 +756,9 @@ class TestJointLikelihood(unittest.TestCase):
     def test_setting_likelihood_other(self):
         with self.assertRaises(ValueError):
             self.joint_likelihood.likelihoods = "test"
+
+    def test_jitted_likelihood(self):
+        _evaluate_with_jit(self.joint_likelihood, self.parameters, self.xp)
 
 
 class TestGPLikelihood(unittest.TestCase):

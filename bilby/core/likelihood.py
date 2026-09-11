@@ -262,13 +262,11 @@ class PoissonLikelihood(Analytical1DLikelihood):
                 "Poisson rate function returns wrong value type! "
                 "Is {} when it should be numpy.ndarray".format(type(rate)))
         xp = aac.get_namespace(rate)
-        if xp.any(rate < 0.):
+        if not aac.is_jax_namespace(xp) and xp.any(rate < 0.):
             raise ValueError(("Poisson rate function returns a negative",
                               " value!"))
-        elif xp.any(rate == 0.):
-            return -np.inf
-        else:
-            return xp.sum(-rate + self.y * xp.log(rate) - gammaln(self.y + 1))
+        rate = xp.maximum(rate, xp.asarray(0.0))
+        return xp.sum(-rate + self.y * xp.log(rate) - gammaln(self.y + 1))
 
     def __repr__(self):
         return Analytical1DLikelihood.__repr__(self)
@@ -276,7 +274,7 @@ class PoissonLikelihood(Analytical1DLikelihood):
     @property
     def y(self):
         """ Property assures that y-value is a positive integer. """
-        return self.__y
+        return self._y
 
     @y.setter
     def y(self, y):
@@ -287,7 +285,7 @@ class PoissonLikelihood(Analytical1DLikelihood):
         # torch doesn't support checking dtype kind
         if (not aac.is_torch_namespace(xp) and y.dtype.kind not in 'ui') or xp.any(y < 0):
             raise ValueError("Data must be non-negative integers")
-        self.__y = y
+        self._y = y
 
 
 class ExponentialLikelihood(Analytical1DLikelihood):
@@ -312,9 +310,8 @@ class ExponentialLikelihood(Analytical1DLikelihood):
     def log_likelihood(self, parameters):
         mu = self.func(self.x, **self.model_parameters(parameters=parameters), **self.kwargs)
         xp = array_module(mu)
-        if xp.any(mu < 0.):
-            return -np.inf
-        return -xp.sum(xp.log(mu) + (self.y / mu))
+        val = xp.nan_to_num(xp.log(mu) + (self.y / mu), nan=np.inf, posinf=np.inf, neginf=-np.inf)
+        return -xp.sum(val)
 
     def __repr__(self):
         return Analytical1DLikelihood.__repr__(self)
@@ -376,10 +373,12 @@ class StudentTLikelihood(Analytical1DLikelihood):
                              "t-likelihood must be positive")
 
         xp = array_module(self.x)
-        log_l =\
-            xp.sum(- (nu + 1) * xp.log1p(self.lam * self.residual(parameters=parameters)**2 / nu) / 2 +
-                   xp.log(xp.asarray(self.lam / (nu * np.pi))) / 2 +
-                   gammaln((nu + 1) / 2) - gammaln(nu / 2))
+        log_l = xp.sum(xp.nan_to_num(
+            - (nu + 1) * xp.log1p(self.lam * self.residual(parameters=parameters)**2 / nu) / 2
+            + xp.log(xp.asarray(self.lam / (nu * np.pi))) / 2
+            + gammaln((nu + 1) / 2) - gammaln(nu / 2),
+            nan=np.inf, posinf=np.inf, neginf=-np.inf
+        ))
         return log_l
 
     def __repr__(self):

@@ -602,9 +602,11 @@ class Interferometer(object):
         =======
         float: The optimal signal to noise ratio possible squared
         """
+        mask = self.strain_data.frequency_mask
+        xp = array_module(signal)
         return gwutils.optimal_snr_squared(
-            signal=signal[self.strain_data.frequency_mask],
-            power_spectral_density=self.power_spectral_density_array[self.strain_data.frequency_mask],
+            signal=signal * mask,
+            power_spectral_density=xp.where(mask, self.power_spectral_density_array, xp.inf),
             duration=self.strain_data.duration)
 
     def inner_product(self, signal):
@@ -619,10 +621,12 @@ class Interferometer(object):
         =======
         float: The optimal signal to noise ratio possible squared
         """
+        mask = self.strain_data.frequency_mask
+        xp = array_module(signal)
         return gwutils.noise_weighted_inner_product(
-            aa=signal[self.strain_data.frequency_mask],
-            bb=self.strain_data.frequency_domain_strain[self.strain_data.frequency_mask],
-            power_spectral_density=self.power_spectral_density_array[self.strain_data.frequency_mask],
+            aa=signal * mask,
+            bb=self.strain_data.frequency_domain_strain * mask,
+            power_spectral_density=xp.where(mask, self.power_spectral_density_array, xp.inf),
             duration=self.strain_data.duration)
 
     def template_template_inner_product(self, signal_1, signal_2):
