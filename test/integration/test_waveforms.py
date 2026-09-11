@@ -1,9 +1,13 @@
 import unittest
 import bilby
-import numpy as np
-from bilby.gw.utils import overlap
 import lal
 import lalsimulation as lalsim
+import numpy as np
+import pytest
+from bilby.gw.utils import overlap
+
+
+pytestmark = pytest.mark.gw
 
 
 class TestWaveformDirectAgainstLALSIM(unittest.TestCase):

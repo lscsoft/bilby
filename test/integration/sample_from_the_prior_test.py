@@ -5,8 +5,12 @@ from packaging import version
 
 import unittest
 import bilby
+import pytest
 import scipy
 from scipy.stats import ks_2samp, kstest
+
+
+pytestmark = pytest.mark.gw
 
 
 def ks_2samp_wrapper(data1, data2):

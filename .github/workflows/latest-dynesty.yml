@@ -19,6 +19,7 @@ concurrency:
 
 env:
   CONDA_PATH: /opt/conda/
+  OMP_NUM_THREADS: 1
 
 jobs:
   build:

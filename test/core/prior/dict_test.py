@@ -41,18 +41,10 @@ class TestPriorDict(unittest.TestCase):
             mass=self.first_prior, speed=self.second_prior, length=self.third_prior
         )
         self.prior_set_from_dict = bilby.core.prior.PriorDict(dictionary=self.priors)
-        self.default_prior_file = os.path.join(
-            os.path.dirname(os.path.realpath(__file__)),
-            "prior_files/precessing_spins_bbh.prior",
-        )
         self.joint_prior_file = os.path.join(
             os.path.dirname(os.path.realpath(__file__)),
             "prior_files/joint_prior.prior",
         )
-        self.prior_set_from_file = bilby.core.prior.PriorDict(
-            filename=self.default_prior_file
-        )
-
         self.joint_prior_from_file = bilby.core.prior.PriorDict(
             filename=self.joint_prior_file
         )
@@ -63,8 +55,6 @@ class TestPriorDict(unittest.TestCase):
         del self.third_prior
         del self.priors
         del self.prior_set_from_dict
-        del self.default_prior_file
-        del self.prior_set_from_file
 
     def test_copy(self):
         priors = bilby.core.prior.PriorDict(self.priors)
@@ -85,65 +75,6 @@ class TestPriorDict(unittest.TestCase):
             self.prior_set_from_dict["Om0"] = np.array(0.30966)
 
     def test_read_from_file(self):
-        expected = dict(
-            mass_1=bilby.core.prior.Constraint(
-                name="mass_1",
-                minimum=5,
-                maximum=100,
-            ),
-            mass_2=bilby.core.prior.Constraint(
-                name="mass_2",
-                minimum=5,
-                maximum=100,
-            ),
-            chirp_mass=bilby.core.prior.Uniform(
-                name="chirp_mass",
-                minimum=25,
-                maximum=100,
-                latex_label=r"$\mathcal{M}$",
-            ),
-            mass_ratio=bilby.core.prior.Uniform(
-                name="mass_ratio",
-                minimum=0.125,
-                maximum=1,
-                latex_label="$q$",
-                unit=None,
-            ),
-            a_1=bilby.core.prior.Uniform(
-                name="a_1", minimum=0, maximum=0.99
-            ),
-            a_2=bilby.core.prior.Uniform(
-                name="a_2", minimum=0, maximum=0.99
-            ),
-            tilt_1=bilby.core.prior.Sine(name="tilt_1"),
-            tilt_2=bilby.core.prior.Sine(name="tilt_2"),
-            phi_12=bilby.core.prior.Uniform(
-                name="phi_12", minimum=0, maximum=2 * np.pi, boundary="periodic"
-            ),
-            phi_jl=bilby.core.prior.Uniform(
-                name="phi_jl", minimum=0, maximum=2 * np.pi, boundary="periodic"
-            ),
-            luminosity_distance=bilby.gw.prior.UniformSourceFrame(
-                name="luminosity_distance",
-                minimum=1e2,
-                maximum=5e3,
-                unit="Mpc",
-                boundary=None,
-            ),
-            dec=bilby.core.prior.Cosine(name="dec"),
-            ra=bilby.core.prior.Uniform(
-                name="ra", minimum=0, maximum=2 * np.pi, boundary="periodic"
-            ),
-            theta_jn=bilby.core.prior.Sine(name="theta_jn"),
-            psi=bilby.core.prior.Uniform(
-                name="psi", minimum=0, maximum=np.pi, boundary="periodic"
-            ),
-            phase=bilby.core.prior.Uniform(
-                name="phase", minimum=0, maximum=2 * np.pi, boundary="periodic"
-            ),
-        )
-        self.assertDictEqual(expected, self.prior_set_from_file)
-
         fake_dist = FakeJointPriorDist(names=["testAfake", "testBfake"])
         testAfake = bilby.core.prior.JointPrior(dist=fake_dist, name="testAfake", unit="unit")
         testBfake = bilby.core.prior.JointPrior(dist=fake_dist, name="testBfake", unit="unit")
@@ -202,71 +133,6 @@ class TestPriorDict(unittest.TestCase):
             e=bilby.core.prior.DeltaFunction(peak=7.3),
         )
         self.assertDictEqual(expected, self.prior_set_from_dict)
-
-    def test_prior_set_from_dict_but_using_a_string(self):
-        prior_set = bilby.core.prior.PriorDict(dictionary=self.default_prior_file)
-        expected = bilby.core.prior.PriorDict(
-            dict(
-                mass_1=bilby.core.prior.Constraint(
-                    name="mass_1",
-                    minimum=5,
-                    maximum=100,
-                ),
-                mass_2=bilby.core.prior.Constraint(
-                    name="mass_2",
-                    minimum=5,
-                    maximum=100,
-                ),
-                chirp_mass=bilby.core.prior.Uniform(
-                    name="chirp_mass",
-                    minimum=25,
-                    maximum=100,
-                    latex_label=r"$\mathcal{M}$",
-                ),
-                mass_ratio=bilby.core.prior.Uniform(
-                    name="mass_ratio",
-                    minimum=0.125,
-                    maximum=1,
-                    latex_label="$q$",
-                    unit=None,
-                ),
-                a_1=bilby.core.prior.Uniform(
-                    name="a_1", minimum=0, maximum=0.99,
-                ),
-                a_2=bilby.core.prior.Uniform(
-                    name="a_2", minimum=0, maximum=0.99,
-                ),
-                tilt_1=bilby.core.prior.Sine(name="tilt_1"),
-                tilt_2=bilby.core.prior.Sine(name="tilt_2"),
-                phi_12=bilby.core.prior.Uniform(
-                    name="phi_12", minimum=0, maximum=2 * np.pi, boundary="periodic"
-                ),
-                phi_jl=bilby.core.prior.Uniform(
-                    name="phi_jl", minimum=0, maximum=2 * np.pi, boundary="periodic"
-                ),
-                luminosity_distance=bilby.gw.prior.UniformSourceFrame(
-                    name="luminosity_distance",
-                    minimum=1e2,
-                    maximum=5e3,
-                    unit="Mpc",
-                    boundary=None,
-                ),
-                dec=bilby.core.prior.Cosine(name="dec"),
-                ra=bilby.core.prior.Uniform(
-                    name="ra", minimum=0, maximum=2 * np.pi, boundary="periodic"
-                ),
-                theta_jn=bilby.core.prior.Sine(name="theta_jn"),
-                psi=bilby.core.prior.Uniform(
-                    name="psi", minimum=0, maximum=np.pi, boundary="periodic"
-                ),
-                phase=bilby.core.prior.Uniform(
-                    name="phase", minimum=0, maximum=2 * np.pi, boundary="periodic"
-                ),
-            )
-        )
-        all_keys = set(prior_set.keys()).union(set(expected.keys()))
-        for key in all_keys:
-            self.assertEqual(expected[key], prior_set[key])
 
     def test_dict_argument_is_not_string_or_dict(self):
         with self.assertRaises(ValueError):
@@ -441,17 +307,6 @@ class TestJsonIO(unittest.TestCase):
 
         fake_joint_prior = FakeJointPriorDist(names=["testAfake", "testBfake"])
 
-        hp_map_file = os.path.join(
-            os.path.dirname(os.path.realpath(__file__)),
-            "prior_files/GW150914_testing_skymap.fits",
-        )
-        hp_dist = bilby.gw.prior.HealPixMapPriorDist(
-            hp_map_file, names=["testra", "testdec"]
-        )
-        hp_3d_dist = bilby.gw.prior.HealPixMapPriorDist(
-            hp_map_file, names=["testRA", "testDEC", "testdistance"], distance=True
-        )
-
         self.priors = bilby.core.prior.PriorDict(
             dict(
                 aa=bilby.core.prior.DeltaFunction(name="test", unit="unit", peak=1),
@@ -471,12 +326,6 @@ class TestJsonIO(unittest.TestCase):
                 ),
                 hh=bilby.core.prior.LogUniform(
                     name="test", unit="unit", minimum=5e0, maximum=1e2
-                ),
-                ii=bilby.gw.prior.UniformComovingVolume(
-                    name="redshift", minimum=0.1, maximum=1.0
-                ),
-                jj=bilby.gw.prior.UniformSourceFrame(
-                    name="luminosity_distance", minimum=1.0, maximum=1000.0
                 ),
                 kk=bilby.core.prior.Sine(name="test", unit="unit"),
                 ll=bilby.core.prior.Cosine(name="test", unit="unit"),
@@ -510,7 +359,6 @@ class TestJsonIO(unittest.TestCase):
                 ),
                 a_=bilby.core.prior.Gamma(name="test", unit="unit", k=1, theta=1),
                 ab=bilby.core.prior.ChiSquared(name="test", unit="unit", nu=2),
-                ac=bilby.gw.prior.AlignedSpin(name="test", unit="unit"),
                 testa=bilby.core.prior.MultivariateGaussian(
                     dist=mvg, name="testa", unit="unit"
                 ),
@@ -534,21 +382,6 @@ class TestJsonIO(unittest.TestCase):
                 ),
                 testBfake=bilby.core.prior.JointPrior(
                     dist=fake_joint_prior, name="testBfake", unit="unit"
-                ),
-                testra=bilby.gw.prior.HealPixPrior(
-                    dist=hp_dist, name="testra", unit="unit"
-                ),
-                testdec=bilby.gw.prior.HealPixPrior(
-                    dist=hp_dist, name="testdec", unit="unit"
-                ),
-                testRA=bilby.gw.prior.HealPixPrior(
-                    dist=hp_3d_dist, name="testRA", unit="unit"
-                ),
-                testDEC=bilby.gw.prior.HealPixPrior(
-                    dist=hp_3d_dist, name="testDEC", unit="unit"
-                ),
-                testdistance=bilby.gw.prior.HealPixPrior(
-                    dist=hp_3d_dist, name="testdistance", unit="unit"
                 ),
             )
         )
@@ -587,47 +420,11 @@ class TestLoadPrior(unittest.TestCase):
         prior = bilby.core.prior.PriorDict(filename)
         self.assertTrue(isinstance(prior["logA"], bilby.core.prior.Uniform))
 
-    def test_load_prior_with_function(self):
-        filename = os.path.join(
-            os.path.dirname(os.path.realpath(__file__)),
-            "prior_files/prior_with_function.prior",
-        )
-        prior = bilby.core.prior.ConditionalPriorDict(filename)
-        self.assertTrue("mass_1" in prior)
-        self.assertTrue("mass_2" in prior)
-        samples = prior.sample(10000)
-        self.assertTrue(all(samples["mass_1"] > samples["mass_2"]))
-
 
 class TestCreateDefaultPrior(unittest.TestCase):
     def test_none_behaviour(self):
         self.assertIsNone(
             bilby.core.prior.create_default_prior(name="name", default_priors_file=None)
-        )
-
-    def test_bbh_params(self):
-        prior_file = os.path.join(
-            os.path.dirname(os.path.realpath(__file__)),
-            "prior_files/precessing_spins_bbh.prior",
-        )
-        prior_set = bilby.core.prior.PriorDict(filename=prior_file)
-        for prior in prior_set:
-            self.assertEqual(
-                prior_set[prior],
-                bilby.core.prior.create_default_prior(
-                    name=prior, default_priors_file=prior_file
-                ),
-            )
-
-    def test_unknown_prior(self):
-        prior_file = os.path.join(
-            os.path.dirname(os.path.realpath(__file__)),
-            "prior_files/precessing_spins_bbh.prior",
-        )
-        self.assertIsNone(
-            bilby.core.prior.create_default_prior(
-                name="name", default_priors_file=prior_file
-            )
         )
 
 
@@ -639,7 +436,7 @@ class TestFillPrior(unittest.TestCase):
         self.priors = bilby.core.prior.PriorDict(dictionary=self.priors)
         self.default_prior_file = os.path.join(
             os.path.dirname(os.path.realpath(__file__)),
-            "prior_files/precessing_spins_bbh.prior",
+            "prior_files/prior_with_floats.prior",
         )
         self.priors.fill_priors(self.likelihood, self.default_prior_file)
 
@@ -665,25 +462,6 @@ class TestFillPrior(unittest.TestCase):
     def test_without_available_default_priors_no_prior_is_set(self):
         with self.assertRaises(KeyError):
             print(self.priors["asdf"])
-
-
-class TestLoadPriorWithCosmologicalParameters(unittest.TestCase):
-
-    def test_load(self):
-        prior_file = os.path.join(
-            os.path.dirname(os.path.realpath(__file__)),
-            "prior_files/prior_with_cosmo_params.prior"
-        )
-        prior_dict = bilby.gw.prior.BBHPriorDict(filename=prior_file)
-        cosmology = prior_dict["luminosity_distance"].cosmology
-        # These values are based on Plank15_LAL as defined in:
-        # https://dcc.ligo.org/DocDB/0167/T2000185/005/LVC_symbol_convention.pdf
-        self.assertEqual(cosmology.H0.value, 67.90)
-        self.assertEqual(cosmology.Om0, 0.3065)
-
-        dl = 1000.0
-        ln_prob = prior_dict["luminosity_distance"].ln_prob(dl)
-        self.assertAlmostEqual(ln_prob, -9.360343006800193, 12)
 
 
 if __name__ == "__main__":

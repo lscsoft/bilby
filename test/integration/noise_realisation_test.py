@@ -1,6 +1,10 @@
 import numpy as np
 import unittest
 import bilby
+import pytest
+
+
+pytestmark = pytest.mark.gw
 
 
 class TestNoiseRealisation(unittest.TestCase):

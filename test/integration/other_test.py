@@ -2,9 +2,13 @@ import os
 import unittest
 
 import numpy as np
+import pytest
 from past.builtins import execfile
 
 import bilby
+
+
+pytestmark = pytest.mark.gw
 
 
 class Test(unittest.TestCase):

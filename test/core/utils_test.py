@@ -7,7 +7,6 @@ import dill
 import numpy as np
 from astropy import constants
 import importlib
-import lal
 import logging
 import matplotlib.pyplot as plt
 import h5py
@@ -25,31 +24,24 @@ from bilby.core.utils.plotting import _close_new_figures
 
 class TestConstants(unittest.TestCase):
     def test_speed_of_light(self):
-        self.assertEqual(utils.speed_of_light, lal.C_SI)
         self.assertLess(
             abs(utils.speed_of_light - constants.c.value) / utils.speed_of_light, 1e-16
         )
 
     def test_parsec(self):
-        self.assertEqual(utils.parsec, lal.PC_SI)
         self.assertLess(abs(utils.parsec - constants.pc.value) / utils.parsec, 1e-11)
 
     def test_solar_mass(self):
-        self.assertEqual(utils.solar_mass, lal.MSUN_SI)
         self.assertLess(
             abs(utils.solar_mass - constants.M_sun.value) / utils.solar_mass, 1e-4
         )
 
     def test_radius_of_earth(self):
-        self.assertEqual(bilby.core.utils.radius_of_earth, lal.REARTH_SI)
         self.assertLess(
             abs(utils.radius_of_earth - constants.R_earth.value)
             / utils.radius_of_earth,
             1e-5,
         )
-
-    def test_gravitational_constant(self):
-        self.assertEqual(bilby.core.utils.gravitational_constant, lal.G_SI)
 
 
 @pytest.mark.array_backend
@@ -571,62 +563,6 @@ class TestSavingNumpyRandomGenerator(unittest.TestCase):
         self.assertEqual(a, b)
 
 
-class TestSavingLalDict(unittest.TestCase):
-
-    @pytest.fixture(autouse=True)
-    def init_outdir(self, tmp_path):
-        # Use pytest's tmp_path fixture to create a temporary directory
-        self.outdir = tmp_path / "test"
-        self.outdir.mkdir()
-
-    def setUp(self):
-        lal_dict = lal.CreateDict()
-        lal.DictInsertREAL8Value(lal_dict, "test_value", 1.23)
-        lal.DictInsertINT4Value(lal_dict, "test_int", 4)
-        self.data = {"lal_dict": lal_dict}
-
-    def _assert_lal_dicts_equal(self, a, b):
-        self.assertIsInstance(b, lal.Dict)
-        self.assertEqual(
-            lal.DictLookupREAL8Value(a, "test_value"),
-            lal.DictLookupREAL8Value(b, "test_value"),
-        )
-        self.assertEqual(
-            lal.DictLookupINT4Value(a, "test_int"),
-            lal.DictLookupINT4Value(b, "test_int"),
-        )
-
-    def test_hdf5(self):
-        with h5py.File(self.outdir / "test.h5", "w") as f:
-            bilby.core.utils.recursively_save_dict_contents_to_group(
-                f, "/", self.data
-            )
-
-        with h5py.File(self.outdir / "test.h5", "r") as f:
-            data = bilby.core.utils.recursively_load_dict_contents_from_group(f, "/")
-
-        self._assert_lal_dicts_equal(self.data["lal_dict"], data["lal_dict"])
-
-    def test_json(self):
-        with open(self.outdir / "test.json", 'w') as file:
-            json.dump(self.data, file, indent=2, cls=bilby.core.utils.BilbyJsonEncoder)
-
-        with open(self.outdir / "test.json", 'r') as file:
-            data = json.load(file, object_hook=bilby.core.utils.decode_bilby_json)
-
-        self._assert_lal_dicts_equal(self.data["lal_dict"], data["lal_dict"])
-
-    def test_encode_lal_dict(self):
-        encoded = bilby.core.utils.io.encode_lal_dict(self.data["lal_dict"])
-        self.assertTrue(encoded["__lal_dict__"])
-        self.assertIn("content", encoded)
-
-    def test_decode_lal_dict(self):
-        encoded = bilby.core.utils.io.encode_lal_dict(self.data["lal_dict"])
-        decoded = bilby.core.utils.io.decode_lal_dict(encoded)
-        self._assert_lal_dicts_equal(self.data["lal_dict"], decoded)
-
-
 class TestGlobalMetaData(unittest.TestCase):
 
     @pytest.fixture(autouse=True)
@@ -654,6 +590,8 @@ class TestGlobalMetaData(unittest.TestCase):
         self.assertTrue(global_meta_data["rng"] is bilby.core.utils.random.rng)
         self.assertEqual(global_meta_data["seed"], 1234)
 
+    @pytest.mark.gw
+    @pytest.mark.requires("lal")
     def test_set_cosmology(self):
         bilby.gw.cosmology.set_cosmology("Planck15_LAL")
         self.assertTrue(global_meta_data["cosmology"] is bilby.gw.cosmology.COSMOLOGY[0])

@@ -1,6 +1,8 @@
 import os
+import shutil
 import unittest
 
+import numpy as np
 import pandas as pd
 from parameterized import parameterized, parameterized_class
 import pytest
@@ -266,6 +268,75 @@ class TestCBCResultSaveAndLoad(BaseCBCResultTest):
         self.assertEqual(self.result.waveform_generator_class, loaded_result.waveform_generator_class)
         self.assertEqual(self.result.waveform_arguments, loaded_result.waveform_arguments)
         self.assertEqual(self.result.interferometers, loaded_result.interferometers)
+
+
+class TestResultWithLalDict(unittest.TestCase):
+    """Regression tests for https://github.com/bilby-dev/bilby/issues/751
+
+    A :code:`lal.Dict` embedded in :code:`meta_data` (e.g. a waveform
+    generator's :code:`lal_waveform_dictionary`) must survive a save/load
+    round trip without any special-casing in :code:`Result`, relying only on
+    the generic :code:`lal.Dict` encode/decode pairs in
+    :code:`bilby.core.utils.io`.
+    """
+
+    @pytest.fixture(autouse=True)
+    def init_outdir(self, tmp_path):
+        self.outdir = str(tmp_path / "test")
+
+    def setUp(self):
+        import lal
+
+        np.random.seed(7)
+        lal_dict = lal.CreateDict()
+        lal.DictInsertREAL8Value(lal_dict, "test_value", 1.23)
+        priors = bilby.prior.PriorDict(dict(x=bilby.prior.Uniform(0, 1, "x")))
+        result = bilby.core.result.Result(
+            label="label",
+            outdir=self.outdir,
+            sampler="emcee",
+            search_parameter_keys=["x"],
+            priors=priors,
+            sampler_kwargs=dict(),
+            meta_data=dict(
+                likelihood=dict(
+                    waveform_arguments=dict(lal_waveform_dictionary=lal_dict)
+                )
+            ),
+        )
+        result.posterior = pd.DataFrame(dict(x=np.random.normal(0, 1, 10)))
+        self.result = result
+
+    def tearDown(self):
+        try:
+            shutil.rmtree(self.outdir)
+        except OSError:
+            pass
+
+    def _get_lal_dict(self, result):
+        return result.meta_data["likelihood"]["waveform_arguments"][
+            "lal_waveform_dictionary"
+        ]
+
+    def test_save_and_load_json(self):
+        self._save_and_load_test(extension="json")
+
+    def test_save_and_load_hdf5(self):
+        self._save_and_load_test(extension="hdf5")
+
+    def _save_and_load_test(self, extension):
+        import lal
+
+        self.result.save_to_file(extension=extension, overwrite=True)
+        loaded_result = bilby.core.result.read_in_result(
+            outdir=self.result.outdir, label=self.result.label, extension=extension
+        )
+        loaded_lal_dict = self._get_lal_dict(loaded_result)
+        self.assertIsInstance(loaded_lal_dict, lal.Dict)
+        self.assertEqual(
+            lal.DictLookupREAL8Value(self._get_lal_dict(self.result), "test_value"),
+            lal.DictLookupREAL8Value(loaded_lal_dict, "test_value"),
+        )
 
 
 if __name__ == "__main__":

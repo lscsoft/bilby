@@ -94,13 +94,14 @@ profile = "black"
 [tool.pytest.ini_options]
 addopts = [
   "--ignore=test/import_test.py",
-  "--ignore=test/integration/other_test.py",
-  "--ignore=test/integration/example_test.py",
-  "--ignore=test/integration/sample_from_the_prior_test.py",
-  "--ignore=test/gw/plot_test.py",
-  "--ignore=test/integration/sampler_run_test.py"
+  "--ignore=test/integration",
+  "--ignore=test/gw/plot_test.py"
 ]
 doctest_optionflags = ["ELLIPSIS", "NORMALIZE_WHITESPACE"]
+markers = [
+  "gw: tests of gravitational-wave functionality",
+  "integration: tests that exercise complete workflows or multiple components"
+]
 
 [tool.setuptools]
 packages = [

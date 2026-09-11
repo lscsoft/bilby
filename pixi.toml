@@ -19,10 +19,13 @@ documentation = ["py313", "gw", "doc", "test", "jax", "torch"]
 jax = ["py313", "gw", "test", "array_api", "jax"]
 latest-dynesty = ["py313", "gw", "test", "dynesty"]
 numpy = ["py313", "gw", "test", "array_api"]
-py311 = ["py311", "gw", "test"]
-py312 = ["py312", "gw", "test"]
-py313 = ["py313", "gw", "test"]
+py311 = ["py311", "test"]
+py311-gw = ["py311", "gw", "test"]
+py312 = ["py312", "test"]
+py312-gw = ["py312", "gw", "test"]
+py313 = ["py313", "test"]
 py313-base = ["py313"]
+py313-gw = ["py313", "gw", "test"]
 torch = ["py313", "gw", "test", "array_api", "torch"]
 
 [feature.array_api.dependencies]
@@ -82,6 +85,7 @@ python = "3.13.*"
 
 [feature.test.dependencies]
 arviz = "*"
+astropy = "*"
 celerite = "*"
 coverage = "*"
 george = "*"

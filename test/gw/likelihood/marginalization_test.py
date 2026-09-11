@@ -167,13 +167,23 @@ class TestMarginalizations(unittest.TestCase):
     For time, this is strongly dependent on the specific time grid used.
     The `time_jitter` parameter makes this a weaker dependence during sampling.
     """
-    _parameters = product(
-        ["regular", "roq", "relbin", "multiband"],
-        ["luminosity_distance", "geocent_time", "phase"],
-        [True, False],
-        [True, False],
-        [True, False],
-    )
+    # Each case compares enabling marginalization for `key`, so exclude cases
+    # where that marginalization is already enabled.
+    _parameters = [
+        (kind, key, distance, time, phase)
+        for kind, key, distance, time, phase in product(
+            ["regular", "roq", "relbin", "multiband"],
+            ["luminosity_distance", "geocent_time", "phase"],
+            [True, False],
+            [True, False],
+            [True, False],
+        )
+        if not {
+            "luminosity_distance": distance,
+            "geocent_time": time,
+            "phase": phase,
+        }[key]
+    ]
 
     lookup_phase = "distance_lookup_phase.npz"
     lookup_no_phase = "distance_lookup_no_phase.npz"
@@ -410,16 +420,12 @@ class TestMarginalizations(unittest.TestCase):
         )
     )
     def test_marginalisation(self, kind, key, distance, time, phase):
-        if all([distance, time, phase]):
-            pytest.skip()
         tested_args = dict(
             distance_marginalization=distance,
             time_marginalization=time,
             phase_marginalization=phase,
         )
         marg_key = f"{key.split('_')[-1]}_marginalization"
-        if tested_args[marg_key]:
-            pytest.skip()
         reference_args = tested_args.copy()
         reference_args[marg_key] = True
         self._template(
