@@ -5,7 +5,6 @@ gravitational-wave sources.
 
 import os
 import sys
-import multiprocessing
 import pickle
 
 import numpy as np
@@ -29,6 +28,7 @@ from .utils import (lalsim_SimNeutronStarEOS4ParamSDGammaCheck,
 from ..compat.utils import array_module
 from ..core.likelihood import MarginalizedLikelihoodReconstructionError
 from ..core.utils import logger, solar_mass, gravitational_constant, speed_of_light, command_line_args, safe_file_dump
+from ..core.utils.parallel import bilby_pool, sampling_convenience_dump
 from ..core.prior import DeltaFunction
 from .utils import lalsim_SimInspiralTransformPrecessingNewInitialConditions
 from .eos.eos import IntegrateTOV
@@ -1633,7 +1633,7 @@ def binary_love_lambda_symmetric_to_lambda_1_lambda_2_automatic_marginalisation(
 
 
 def _generate_all_cbc_parameters(sample, defaults, base_conversion,
-                                 likelihood=None, priors=None, npool=1):
+                                 likelihood=None, priors=None, npool=1, pool=None):
     """Generate all cbc parameters, helper function for BBH/BNS"""
     output_sample = sample.copy()
 
@@ -1663,13 +1663,13 @@ def _generate_all_cbc_parameters(sample, defaults, base_conversion,
             output_sample["time_jitter"] = 0.0
 
         compute_per_detector_log_likelihoods(
-            samples=output_sample, likelihood=likelihood, npool=npool)
+            samples=output_sample, likelihood=likelihood, npool=npool, pool=pool)
 
         marginalized_parameters = getattr(likelihood, "_marginalized_parameters", list())
         if len(marginalized_parameters) > 0:
             try:
                 generate_posterior_samples_from_marginalized_likelihood(
-                    samples=output_sample, likelihood=likelihood, npool=npool)
+                    samples=output_sample, likelihood=likelihood, npool=npool, pool=pool)
             except MarginalizedLikelihoodReconstructionError as e:
                 logger.warning(
                     "Marginalised parameter reconstruction failed with message "
@@ -1703,7 +1703,7 @@ def _generate_all_cbc_parameters(sample, defaults, base_conversion,
                     "Failed to generate sky frame parameters for type {}"
                     .format(type(output_sample))
                 )
-        compute_snrs(output_sample, likelihood, npool=npool)
+        compute_snrs(output_sample, likelihood=likelihood, npool=npool, pool=pool)
         # Remove the time jitter if it was added
         if added_time_jitter:
             output_sample.pop("time_jitter")
@@ -1720,7 +1720,7 @@ def _generate_all_cbc_parameters(sample, defaults, base_conversion,
     return output_sample
 
 
-def generate_all_bbh_parameters(sample, likelihood=None, priors=None, npool=1):
+def generate_all_bbh_parameters(sample, likelihood=None, priors=None, npool=1, pool=None):
     """
     From either a single sample or a set of samples fill in all missing
     BBH parameters, in place.
@@ -1742,11 +1742,11 @@ def generate_all_bbh_parameters(sample, likelihood=None, priors=None, npool=1):
     output_sample = _generate_all_cbc_parameters(
         sample, defaults=waveform_defaults,
         base_conversion=convert_to_lal_binary_black_hole_parameters,
-        likelihood=likelihood, priors=priors, npool=npool)
+        likelihood=likelihood, priors=priors, npool=npool, pool=pool)
     return output_sample
 
 
-def generate_all_bns_parameters(sample, likelihood=None, priors=None, npool=1):
+def generate_all_bns_parameters(sample, likelihood=None, priors=None, npool=1, pool=None):
     """
     From either a single sample or a set of samples fill in all missing
     BNS parameters, in place.
@@ -1773,7 +1773,7 @@ def generate_all_bns_parameters(sample, likelihood=None, priors=None, npool=1):
     output_sample = _generate_all_cbc_parameters(
         sample, defaults=waveform_defaults,
         base_conversion=convert_to_lal_binary_neutron_star_parameters,
-        likelihood=likelihood, priors=priors, npool=npool)
+        likelihood=likelihood, priors=priors, npool=npool, pool=pool)
     try:
         output_sample = generate_tidal_parameters(output_sample)
     except KeyError as e:
@@ -2227,7 +2227,7 @@ def generate_source_frame_parameters(sample):
     return output_sample
 
 
-def compute_snrs(sample, likelihood, npool=1):
+def compute_snrs(sample, likelihood, npool=1, pool=None):
     """
     Compute the optimal and matched filter snrs of all posterior samples
     and print it out.
@@ -2254,23 +2254,12 @@ def compute_snrs(sample, likelihood, npool=1):
             logger.info('Computing SNRs for every sample.')
 
             fill_args = [(ii, row) for ii, row in sample.iterrows()]
-            if npool > 1:
-                from ..core.sampler.base_sampler import _initialize_global_variables
-                pool = multiprocessing.Pool(
-                    processes=npool,
-                    initializer=_initialize_global_variables,
-                    initargs=(likelihood, None, None, False, dict()),
-                )
-                logger.info(
-                    "Using a pool with size {} for nsamples={}".format(npool, len(sample))
-                )
-                new_samples = pool.map(_compute_snrs, tqdm(fill_args, file=sys.stdout))
-                pool.close()
-                pool.join()
-            else:
-                from ..core.sampler.base_sampler import _sampling_convenience_dump
-                _sampling_convenience_dump.likelihood = likelihood
-                new_samples = [_compute_snrs(xx) for xx in tqdm(fill_args, file=sys.stdout)]
+            with bilby_pool(likelihood=likelihood, priors=None, npool=npool, pool=pool) as _pool:
+                if _pool is not None:
+                    new_samples = _pool.map(_compute_snrs, tqdm(fill_args, file=sys.stdout))
+                else:
+                    sampling_convenience_dump.likelihood = likelihood
+                    new_samples = [_compute_snrs(xx) for xx in tqdm(fill_args, file=sys.stdout)]
 
             for ii, ifo in enumerate(likelihood.interferometers):
                 snr_updates = dict()
@@ -2288,8 +2277,7 @@ def compute_snrs(sample, likelihood, npool=1):
 
 def _compute_snrs(args):
     """A wrapper of computing the SNRs to enable multiprocessing"""
-    from ..core.sampler.base_sampler import _sampling_convenience_dump
-    likelihood = _sampling_convenience_dump.likelihood
+    likelihood = sampling_convenience_dump.likelihood
     ii, sample = args
     sample = dict(sample).copy()
     signal_polarizations = likelihood.waveform_generator.frequency_domain_strain(
@@ -2303,7 +2291,7 @@ def _compute_snrs(args):
     return snrs
 
 
-def compute_per_detector_log_likelihoods(samples, likelihood, npool=1, block=10):
+def compute_per_detector_log_likelihoods(samples, likelihood, npool=1, block=10, pool=None):
     """
     Calculate the log likelihoods in each detector.
 
@@ -2344,48 +2332,32 @@ def compute_per_detector_log_likelihoods(samples, likelihood, npool=1, block=10)
         # Store samples to convert for checking
         cached_samples_dict["_samples"] = samples
 
-        # Set up the multiprocessing
-        if npool > 1:
-            from ..core.sampler.base_sampler import _initialize_global_variables
-            pool = multiprocessing.Pool(
-                processes=npool,
-                initializer=_initialize_global_variables,
-                initargs=(likelihood, None, None, False, dict()),
-            )
-            logger.info(
-                "Using a pool with size {} for nsamples={}"
-                .format(npool, len(samples))
-            )
-        else:
-            from ..core.sampler.base_sampler import _sampling_convenience_dump
-            _sampling_convenience_dump.likelihood = likelihood
-            pool = None
-
         fill_args = [(ii, row) for ii, row in samples.iterrows()]
         ii = 0
         pbar = tqdm(total=len(samples), file=sys.stdout)
-        while ii < len(samples):
-            if ii in cached_samples_dict:
+        with bilby_pool(likelihood=likelihood, priors=None, npool=npool, pool=pool) as _pool:
+            while ii < len(samples):
+                if ii in cached_samples_dict:
+                    ii += block
+                    pbar.update(block)
+                    continue
+
+                if _pool is not None:
+                    map_fn = _pool.map
+                else:
+                    map_fn = map
+                    sampling_convenience_dump.likelihood = likelihood
+
+                subset_samples = list(map_fn(
+                    _compute_per_detector_log_likelihoods,
+                    fill_args[ii: ii + block],
+                ))
+
+                cached_samples_dict[ii] = subset_samples
+
                 ii += block
-                pbar.update(block)
-                continue
-
-            if pool is not None:
-                subset_samples = pool.map(_compute_per_detector_log_likelihoods,
-                                          fill_args[ii: ii + block])
-            else:
-                subset_samples = [list(_compute_per_detector_log_likelihoods(xx))
-                                  for xx in fill_args[ii: ii + block]]
-
-            cached_samples_dict[ii] = subset_samples
-
-            ii += block
-            pbar.update(len(subset_samples))
+                pbar.update(len(subset_samples))
         pbar.close()
-
-        if pool is not None:
-            pool.close()
-            pool.join()
 
         new_samples = np.concatenate(
             [np.array(val) for key, val in cached_samples_dict.items() if key != "_samples"]
@@ -2403,8 +2375,7 @@ def compute_per_detector_log_likelihoods(samples, likelihood, npool=1, block=10)
 
 def _compute_per_detector_log_likelihoods(args):
     """A wrapper of computing the per-detector log likelihoods to enable multiprocessing"""
-    from ..core.sampler.base_sampler import _sampling_convenience_dump
-    likelihood = _sampling_convenience_dump.likelihood
+    likelihood = sampling_convenience_dump.likelihood
     _, sample = args
     sample = dict(sample).copy()
     new_sample = likelihood.compute_per_detector_log_likelihood(sample)
@@ -2413,7 +2384,7 @@ def _compute_per_detector_log_likelihoods(args):
 
 
 def generate_posterior_samples_from_marginalized_likelihood(
-        samples, likelihood, npool=1, block=10, use_cache=True):
+        samples, likelihood, npool=1, block=10, use_cache=True, pool=None):
     """
     Reconstruct the distance posterior from a run which used a likelihood which
     explicitly marginalised over time/distance/phase.
@@ -2487,50 +2458,30 @@ def generate_posterior_samples_from_marginalized_likelihood(
         # Store samples to convert for checking
         cached_samples_dict["_samples"] = samples
 
-    # Set up the multiprocessing
-    if npool > 1:
-        from ..core.sampler.base_sampler import _initialize_global_variables
-        pool = multiprocessing.Pool(
-            processes=npool,
-            initializer=_initialize_global_variables,
-            initargs=(likelihood, None, None, False, dict()),
-        )
-        logger.info(
-            "Using a pool with size {} for nsamples={}"
-            .format(npool, len(samples))
-        )
-    else:
-        from ..core.sampler.base_sampler import _sampling_convenience_dump
-        _sampling_convenience_dump.likelihood = likelihood
-        pool = None
-
     seeds = generate_seeds(len(samples))
     fill_args = [(ii, row, seed) for (ii, row), seed in zip(samples.iterrows(), seeds)]
     ii = 0
     pbar = tqdm(total=len(samples), file=sys.stdout)
-    while ii < len(samples):
-        if ii in cached_samples_dict:
+    with bilby_pool(likelihood=likelihood, priors=None, npool=npool, pool=pool) as _pool:
+        while ii < len(samples):
+            if ii in cached_samples_dict:
+                ii += block
+                pbar.update(block)
+                continue
+
+            if _pool is not None:
+                subset_samples = _pool.map(fill_sample, fill_args[ii: ii + block])
+            else:
+                subset_samples = list(map(fill_sample, fill_args[ii: ii + block]))
+
+            cached_samples_dict[ii] = subset_samples
+
+            if use_cache:
+                safe_file_dump(cached_samples_dict, cache_filename, "pickle")
+
             ii += block
-            pbar.update(block)
-            continue
-
-        if pool is not None:
-            subset_samples = pool.map(fill_sample, fill_args[ii: ii + block])
-        else:
-            subset_samples = [list(fill_sample(xx)) for xx in fill_args[ii: ii + block]]
-
-        cached_samples_dict[ii] = subset_samples
-
-        if use_cache:
-            safe_file_dump(cached_samples_dict, cache_filename, "pickle")
-
-        ii += block
-        pbar.update(len(subset_samples))
+            pbar.update(len(subset_samples))
     pbar.close()
-
-    if pool is not None:
-        pool.close()
-        pool.join()
 
     new_samples = np.concatenate(
         [np.array(val) for key, val in cached_samples_dict.items() if key != "_samples"]
@@ -2561,12 +2512,11 @@ def generate_sky_frame_parameters(samples, likelihood):
 
 
 def fill_sample(args):
-    from ..core.sampler.base_sampler import _sampling_convenience_dump
     from ..core.utils.random import seed
 
     _, sample, rseed = args
     seed(rseed)
-    likelihood = _sampling_convenience_dump.likelihood
+    likelihood = sampling_convenience_dump.likelihood
     marginalized_parameters = getattr(likelihood, "_marginalized_parameters", list())
     sample = dict(sample).copy()
     new_sample = likelihood.generate_posterior_sample_from_marginalized_likelihood(sample)
@@ -2580,7 +2530,7 @@ def identity_map_conversion(parameters):
     return parameters, []
 
 
-def identity_map_generation(sample, likelihood=None, priors=None, npool=1):
+def identity_map_generation(sample, likelihood=None, priors=None, npool=1, pool=None):
     """An identity map generation function that handles marginalizations, SNRs, etc. correctly,
     but does not attempt e.g. conversions in mass or spins
 
@@ -2605,13 +2555,13 @@ def identity_map_generation(sample, likelihood=None, priors=None, npool=1):
 
     if likelihood is not None:
         compute_per_detector_log_likelihoods(
-            samples=output_sample, likelihood=likelihood, npool=npool)
+            samples=output_sample, likelihood=likelihood, npool=npool, pool=pool)
 
         marginalized_parameters = getattr(likelihood, "_marginalized_parameters", list())
         if len(marginalized_parameters) > 0:
             try:
                 generate_posterior_samples_from_marginalized_likelihood(
-                    samples=output_sample, likelihood=likelihood, npool=npool)
+                    samples=output_sample, likelihood=likelihood, npool=npool, pool=pool)
             except MarginalizedLikelihoodReconstructionError as e:
                 logger.warning(
                     "Marginalised parameter reconstruction failed with message "
@@ -2620,7 +2570,7 @@ def identity_map_generation(sample, likelihood=None, priors=None, npool=1):
                 )
 
         if ("ra" in output_sample.keys() and "dec" in output_sample.keys() and "psi" in output_sample.keys()):
-            compute_snrs(output_sample, likelihood, npool=npool)
+            compute_snrs(output_sample, likelihood, npool=npool, pool=pool)
         else:
             logger.info(
                 "Skipping SNR computation since samples have insufficient sky location information"

@@ -16,48 +16,31 @@ from ..utils import (
     logger,
     safe_file_dump,
 )
+from ..utils.parallel import sampling_convenience_dump
 from ..utils.plotting import _close_new_figures
 from . import dynesty_utils
-from .base_sampler import (
-    NestedSampler,
-    ResumeError,
-    Sampler,
-    _SamplingContainer,
-    signal_wrapper,
-)
-
-
-def _set_sampling_kwargs(args):
-    nact, maxmcmc, proposals, naccept = args
-    _SamplingContainer.nact = nact
-    _SamplingContainer.maxmcmc = maxmcmc
-    _SamplingContainer.proposals = proposals
-    _SamplingContainer.naccept = naccept
+from .base_sampler import NestedSampler, ResumeError, Sampler, signal_wrapper
 
 
 def _prior_transform_wrapper(theta):
     """Wrapper to the prior transformation. Needed for multiprocessing."""
-    from .base_sampler import _sampling_convenience_dump
-
-    return _sampling_convenience_dump.priors.rescale(
-        _sampling_convenience_dump.search_parameter_keys, theta
+    return sampling_convenience_dump.priors.rescale(
+        sampling_convenience_dump.search_parameter_keys, theta
     )
 
 
 def _log_likelihood_wrapper(theta):
     """Wrapper to the log likelihood. Needed for multiprocessing."""
-    from .base_sampler import _sampling_convenience_dump
-
-    keys = _sampling_convenience_dump.search_parameter_keys
+    keys = sampling_convenience_dump.search_parameter_keys
     sampling_params = {key: t for key, t in zip(keys, theta)}
-    params = deepcopy(_sampling_convenience_dump.parameters)
+    params = deepcopy(sampling_convenience_dump.parameters)
     params.update(sampling_params)
-    if not _sampling_convenience_dump.priors.evaluate_constraints(sampling_params):
+    if not sampling_convenience_dump.priors.evaluate_constraints(sampling_params):
         return np.nan_to_num(-np.inf)
-    elif _sampling_convenience_dump.use_ratio:
-        return _sampling_convenience_dump.likelihood.log_likelihood_ratio(params)
+    elif sampling_convenience_dump.use_ratio:
+        return sampling_convenience_dump.likelihood.log_likelihood_ratio(params)
     else:
-        return _sampling_convenience_dump.likelihood.log_likelihood(params)
+        return sampling_convenience_dump.likelihood.log_likelihood(params)
 
 
 class Dynesty(NestedSampler):

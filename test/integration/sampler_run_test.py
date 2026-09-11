@@ -8,11 +8,13 @@ multiprocessing.set_start_method("fork")  # noqa
 
 import unittest
 import pytest
-from parameterized import parameterized
 import shutil
+from parameterized import parameterized
 
 import bilby
 import numpy as np
+from bilby.core.sampler.base_sampler import initialize_global_variables
+from schwimmbad import SerialPool
 
 
 _sampler_kwargs = dict(
@@ -72,7 +74,7 @@ class TestRunningSamplers(unittest.TestCase):
         bilby.core.utils.check_directory_exists_and_if_not_mkdir("outdir")
 
     @staticmethod
-    def conversion_function(parameters, likelihood, prior):
+    def conversion_function(parameters, likelihood, priors):
         converted = parameters.copy()
         if "derived" not in converted:
             converted["derived"] = converted["m"] * converted["c"]
@@ -93,6 +95,12 @@ class TestRunningSamplers(unittest.TestCase):
     @parameterized.expand(_sampler_kwargs.keys())
     def test_run_sampler_single(self, sampler):
         self._run_sampler(sampler, pool_size=1)
+
+    @parameterized.expand(_sampler_kwargs.keys())
+    def test_run_sampler_schwimmbad(self, sampler):
+        pool = SerialPool()
+        initialize_global_variables(self.likelihood, self.priors, ["m", "c"], True, {"m": 0, "c": 0})
+        self._run_sampler(sampler, pool_size=1, pool=pool)
 
     @parameterized.expand(_sampler_kwargs.keys())
     def test_run_sampler_pool(self, sampler):
@@ -119,10 +127,16 @@ class TestRunningSamplers(unittest.TestCase):
         self._run_with_signal_handling(sampler, pool_size=1)
 
     @parameterized.expand(_sampler_kwargs.keys())
+    def test_interrupt_sampler_schwimmbad(self, sampler):
+        pool = SerialPool()
+        initialize_global_variables(self.likelihood, self.priors, ["m", "c"], True, {"m": 0, "c": 0})
+        self._run_with_signal_handling(sampler, pool_size=1, pool=pool)
+
+    @parameterized.expand(_sampler_kwargs.keys())
     def test_interrupt_sampler_pool(self, sampler):
         self._run_with_signal_handling(sampler, pool_size=2)
 
-    def _run_with_signal_handling(self, sampler, pool_size=1):
+    def _run_with_signal_handling(self, sampler, pool_size=1, **kwargs):
         pytest.importorskip(sampler_imports.get(sampler, sampler))
         if loaded_samplers[sampler.lower()].hard_exit:
             pytest.skip(f"{sampler} hard exits, can't test signal handling.")
@@ -143,7 +157,7 @@ class TestRunningSamplers(unittest.TestCase):
         with self.assertRaises((SystemExit, KeyboardInterrupt)):
             try:
                 while True:
-                    self._run_sampler(sampler=sampler, pool_size=pool_size, exit_code=5)
+                    self._run_sampler(sampler=sampler, pool_size=pool_size, exit_code=5, **kwargs)
             except SystemExit as error:
                 self.assertEqual(error.code, 5)
                 raise

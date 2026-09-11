@@ -953,7 +953,7 @@ class TestReweight(unittest.TestCase):
             log_evidence=-np.log(10),
         )
 
-    def _run_reweighting(self, sigma):
+    def _run_reweighting(self, sigma, npool=None):
         likelihood_1 = SimpleGaussianLikelihood()
         likelihood_2 = SimpleGaussianLikelihood(sigma=sigma)
         original_ln_likelihoods = list()
@@ -963,7 +963,11 @@ class TestReweight(unittest.TestCase):
         self.result.posterior["log_likelihood"] = original_ln_likelihoods
         self.original_ln_likelihoods = original_ln_likelihoods
         return bilby.core.result.reweight(
-            self.result, likelihood_1, likelihood_2, verbose_output=True
+            self.result,
+            likelihood_1,
+            likelihood_2,
+            verbose_output=True,
+            npool=npool,
         )
 
     def test_reweight_same_likelihood_weights_1(self):
@@ -971,6 +975,13 @@ class TestReweight(unittest.TestCase):
         When the likelihoods are the same, the weights should be 1.
         """
         _, weights, _, _, _, _ = self._run_reweighting(sigma=1)
+        self.assertLess(min(abs(weights - 1)), 1e-10)
+
+    def test_reweight_same_likelihood_weights_1_with_pool(self):
+        """
+        When the likelihoods are the same, the weights should be 1.
+        """
+        _, weights, _, _, _, _ = self._run_reweighting(sigma=1, npool=2)
         self.assertLess(min(abs(weights - 1)), 1e-10)
 
     @pytest.mark.flaky(reruns=3)

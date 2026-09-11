@@ -94,6 +94,7 @@ pytest-doctestplus = "*"
 pytest-requires = "*"
 pytest-rerunfailures = "*"
 pytorch-cpu = "*"
+schwimmbad = "*"
 scikit-learn = "*"
 
 [feature.test.pypi-dependencies]

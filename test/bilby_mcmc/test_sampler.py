@@ -44,7 +44,7 @@ class TestBilbyMCMCSampler(unittest.TestCase):
         search_parameter_keys = ['m', 'c']
         use_ratio = False
 
-        bilby.core.sampler.base_sampler._initialize_global_variables(
+        bilby.core.sampler.base_sampler.initialize_global_variables(
             likelihood,
             priors,
             search_parameter_keys,

@@ -15,7 +15,6 @@ from ..core.sampler.base_sampler import (
     MCMCSampler,
     ResumeError,
     SamplerError,
-    _sampling_convenience_dump,
     signal_wrapper,
 )
 from ..core.utils import (
@@ -24,6 +23,7 @@ from ..core.utils import (
     random,
     safe_file_dump,
 )
+from ..core.utils.parallel import sampling_convenience_dump
 from . import proposals
 from .chain import Chain, Sample
 from .utils import LOGLKEY, LOGPKEY, ConvergenceInputs, ParallelTemperingInputs
@@ -284,7 +284,7 @@ class Bilby_MCMC(MCMCSampler):
             total_steps=ptsampler.position,
             nsamples=ptsampler.nsamples,
         )
-        if ptsampler.pool is not None:
+        if ptsampler.pool is not None and hasattr(ptsampler.pool, "_processes"):
             npool = ptsampler.pool._processes
         else:
             npool = 1
@@ -615,7 +615,7 @@ class BilbyPTMCMCSampler(object):
 
         self._nsamples_dict = {}
         self.ensemble_proposal_cycle = proposals.get_default_ensemble_proposal_cycle(
-            _sampling_convenience_dump.priors
+            sampling_convenience_dump.priors
         )
         self.sampling_time = 0
         self.ln_z_dict = dict()
@@ -630,7 +630,7 @@ class BilbyPTMCMCSampler(object):
         elif pt_inputs.Tmax is not None:
             betas = np.logspace(0, -np.log10(pt_inputs.Tmax), pt_inputs.ntemps)
         elif pt_inputs.Tmax_from_SNR is not None:
-            ndim = len(_sampling_convenience_dump.priors.non_fixed_keys)
+            ndim = len(sampling_convenience_dump.priors.non_fixed_keys)
             target_hot_likelihood = ndim / 2
             Tmax = pt_inputs.Tmax_from_SNR**2 / (2 * target_hot_likelihood)
             betas = np.logspace(0, -np.log10(Tmax), pt_inputs.ntemps)
@@ -1172,15 +1172,15 @@ class BilbyMCMCSampler(object):
         self.Eindex = Eindex
         self.use_ratio = use_ratio
         self.normalize_prior = normalize_prior
-        self.parameters = _sampling_convenience_dump.priors.non_fixed_keys
+        self.parameters = sampling_convenience_dump.priors.non_fixed_keys
         self.ndim = len(self.parameters)
 
         if initial_sample_method.lower() == "prior":
-            full_sample_dict = _sampling_convenience_dump.priors.sample()
+            full_sample_dict = sampling_convenience_dump.priors.sample()
             initial_sample = {
                 k: v
                 for k, v in full_sample_dict.items()
-                if k in _sampling_convenience_dump.priors.non_fixed_keys
+                if k in sampling_convenience_dump.priors.non_fixed_keys
             }
         elif initial_sample_method.lower() in ["maximize", "maximise", "maximum"]:
             initial_sample = get_initial_maximimum_posterior_sample(self.beta)
@@ -1217,7 +1217,7 @@ class BilbyMCMCSampler(object):
 
             self.proposal_cycle = proposals.get_proposal_cycle(
                 proposal_cycle,
-                _sampling_convenience_dump.priors,
+                sampling_convenience_dump.priors,
                 L1steps=self.chain.L1steps,
                 warn=warn,
             )
@@ -1236,16 +1236,16 @@ class BilbyMCMCSampler(object):
         self.stop_after_convergence = convergence_inputs.stop_after_convergence
 
     def log_likelihood(self, sample):
-        params = deepcopy(_sampling_convenience_dump.parameters)
+        params = deepcopy(sampling_convenience_dump.parameters)
         params.update(sample.sample_dict)
 
         if self.use_ratio:
-            return _sampling_convenience_dump.likelihood.log_likelihood_ratio(params)
+            return sampling_convenience_dump.likelihood.log_likelihood_ratio(params)
         else:
-            return _sampling_convenience_dump.likelihood.log_likelihood(params)
+            return sampling_convenience_dump.likelihood.log_likelihood(params)
 
     def log_prior(self, sample):
-        return _sampling_convenience_dump.priors.ln_prob(
+        return sampling_convenience_dump.priors.ln_prob(
             sample.parameter_only_dict,
             normalized=self.normalize_prior,
         )
@@ -1273,8 +1273,8 @@ class BilbyMCMCSampler(object):
             proposal = self.proposal_cycle.get_proposal()
             prop, log_factor = proposal(
                 self.chain,
-                likelihood=_sampling_convenience_dump.likelihood,
-                priors=_sampling_convenience_dump.priors,
+                likelihood=sampling_convenience_dump.likelihood,
+                priors=sampling_convenience_dump.priors,
             )
             logp = self.log_prior(prop)
 
@@ -1350,10 +1350,8 @@ class BilbyMCMCSampler(object):
         zerotemp_logl = hot_samples[LOGLKEY]
 
         # Revert to true likelihood if needed
-        if _sampling_convenience_dump.use_ratio:
-            zerotemp_logl += (
-                _sampling_convenience_dump.likelihood.noise_log_likelihood()
-            )
+        if sampling_convenience_dump.use_ratio:
+            zerotemp_logl += sampling_convenience_dump.likelihood.noise_log_likelihood()
 
         # Calculate normalised weights
         log_weights = (1 - beta) * zerotemp_logl
@@ -1383,9 +1381,9 @@ def get_initial_maximimum_posterior_sample(beta):
 
     """
     logger.info("Finding initial maximum posterior estimate")
-    likelihood = _sampling_convenience_dump.likelihood
-    priors = _sampling_convenience_dump.priors
-    search_parameter_keys = _sampling_convenience_dump.search_parameter_keys
+    likelihood = sampling_convenience_dump.likelihood
+    priors = sampling_convenience_dump.priors
+    search_parameter_keys = sampling_convenience_dump.search_parameter_keys
 
     bounds = []
     for key in search_parameter_keys:
@@ -1398,7 +1396,7 @@ def get_initial_maximimum_posterior_sample(beta):
         if np.isinf(ln_prior):
             return -np.inf
 
-        parameters = deepcopy(_sampling_convenience_dump.parameters)
+        parameters = deepcopy(sampling_convenience_dump.parameters)
         parameters.update(sample)
 
         return -beta * likelihood.log_likelihood(parameters) - ln_prior

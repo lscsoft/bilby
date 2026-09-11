@@ -8,7 +8,8 @@ from collections import namedtuple
 from copy import copy
 from importlib import import_module
 from itertools import product
-import multiprocessing
+from functools import partial
+
 import numpy as np
 import pandas as pd
 import scipy.stats
@@ -31,6 +32,11 @@ from .prior import Prior, PriorDict, DeltaFunction, ConditionalDeltaFunction
 
 
 EXTENSIONS = ["json", "hdf5", "h5", "pickle", "pkl"]
+
+
+def __eval_l(likelihood, params):
+    likelihood.parameters.update(params)
+    return likelihood.log_likelihood()
 
 
 def result_file_name(outdir, label, extension='json', gzip=False):
@@ -191,7 +197,7 @@ def read_in_result_list(filename_list, invalid="warning"):
 
 def get_weights_for_reweighting(
         result, new_likelihood=None, new_prior=None, old_likelihood=None,
-        old_prior=None, resume_file=None, n_checkpoint=5000, npool=1):
+        old_prior=None, resume_file=None, n_checkpoint=5000, npool=1, pool=None):
     """ Calculate the weights for reweight()
 
     See bilby.core.result.reweight() for help with the inputs
@@ -234,23 +240,26 @@ def get_weights_for_reweighting(
         basedir = os.path.split(resume_file)[0]
         check_directory_exists_and_if_not_mkdir(basedir)
 
-    dict_samples = [{key: sample[key] for key in result.posterior}
-                    for _, sample in result.posterior.iterrows()]
+    dict_samples = result.posterior.to_dict(orient="records")
     n = len(dict_samples) - starting_index
 
     # Helper function to compute likelihoods in parallel
     def eval_pool(this_logl):
-        with multiprocessing.Pool(processes=npool) as pool:
-            chunksize = max(100, n // (2 * npool))
-            return list(tqdm(
-                pool.imap(
-                    this_logl.log_likelihood,
-                    dict_samples[starting_index:],
-                    chunksize=chunksize,
-                ),
+        from .utils.parallel import bilby_pool
+
+        with bilby_pool(likelihood=this_logl, npool=npool) as my_pool:
+            if my_pool is None:
+                map_fn = map
+            else:
+                chunksize = max(100, n // (2 * npool))
+                map_fn = partial(my_pool.imap, chunksize=chunksize)
+
+            log_l = list(tqdm(
+                map_fn(this_logl.log_likelihood, dict_samples[starting_index:]),
                 desc='Computing likelihoods',
-                total=n)
-            )
+                total=n,
+            ))
+        return log_l
 
     if old_likelihood is None:
         old_log_likelihood_array[starting_index:] = \
@@ -324,7 +333,7 @@ def rejection_sample(posterior, weights):
 def reweight(result, label=None, new_likelihood=None, new_prior=None,
              old_likelihood=None, old_prior=None, conversion_function=None, npool=1,
              verbose_output=False, resume_file=None, n_checkpoint=5000,
-             use_nested_samples=False):
+             use_nested_samples=False, pool=None):
     """ Reweight a result to a new likelihood/prior using rejection sampling
 
     Parameters
@@ -387,7 +396,9 @@ def reweight(result, label=None, new_likelihood=None, new_prior=None,
         get_weights_for_reweighting(
             result, new_likelihood=new_likelihood, new_prior=new_prior,
             old_likelihood=old_likelihood, old_prior=old_prior,
-            resume_file=resume_file, n_checkpoint=n_checkpoint, npool=npool)
+            resume_file=resume_file, n_checkpoint=n_checkpoint,
+            npool=npool, pool=pool,
+        )
 
     if use_nested_samples:
         ln_weights += np.log(result.posterior["weights"])
@@ -414,10 +425,14 @@ def reweight(result, label=None, new_likelihood=None, new_prior=None,
 
     if conversion_function is not None:
         data_frame = result.posterior
-        if "npool" in inspect.signature(conversion_function).parameters:
-            data_frame = conversion_function(data_frame, new_likelihood, new_prior, npool=npool)
-        else:
-            data_frame = conversion_function(data_frame, new_likelihood, new_prior)
+        parameters = inspect.signature(conversion_function).parameters
+        kwargs = dict()
+        for key, value in [
+            ("likelihood", new_likelihood), ("priors", new_prior), ("npool", npool), ("pool", pool)
+        ]:
+            if key in parameters:
+                kwargs[key] = value
+        data_frame = conversion_function(data_frame, **kwargs)
         result.posterior = data_frame
 
     if label:
@@ -757,6 +772,21 @@ class Result(object):
     @property
     def log_10_noise_evidence(self):
         return self.log_noise_evidence / np.log(10)
+
+    @property
+    def sampler_kwargs(self):
+        return self._sampler_kwargs
+
+    @sampler_kwargs.setter
+    def sampler_kwargs(self, sampler_kwargs):
+        if sampler_kwargs is None:
+            sampler_kwargs = dict()
+        else:
+            sampler_kwargs = copy(sampler_kwargs)
+        if "pool" in sampler_kwargs:
+            # pool objects can't be neatly serialized
+            sampler_kwargs["pool"] = None
+        self._sampler_kwargs = sampler_kwargs
 
     @property
     def version(self):
@@ -1523,7 +1553,7 @@ class Result(object):
         return posterior
 
     def samples_to_posterior(self, likelihood=None, priors=None,
-                             conversion_function=None, npool=1):
+                             conversion_function=None, npool=1, pool=None):
         """
         Convert array of samples to posterior (a Pandas data frame)
 
@@ -1553,10 +1583,14 @@ class Result(object):
             data_frame['log_prior'] = self.log_prior_evaluations
 
         if conversion_function is not None:
-            if "npool" in inspect.signature(conversion_function).parameters:
-                data_frame = conversion_function(data_frame, likelihood, priors, npool=npool)
-            else:
-                data_frame = conversion_function(data_frame, likelihood, priors)
+            parameters = inspect.signature(conversion_function).parameters
+            kwargs = dict()
+            for key, value in [
+                ("likelihood", likelihood), ("priors", priors), ("npool", npool), ("pool", pool)
+            ]:
+                if key in parameters:
+                    kwargs[key] = value
+            data_frame = conversion_function(data_frame, **kwargs)
         self.posterior = data_frame
 
     def calculate_prior_values(self, priors):

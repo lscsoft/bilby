@@ -712,7 +712,7 @@ def _get_proposal_kwargs(args):
 
     The steps involved are:
 
-    - extract the requested proposal types from the :code:`_SamplingContainer`.
+    - extract the requested proposal types from the kwargs passed through from dynesty.
       If none are specified, only differential evolution will be used.
     - differential evolution requires the live points to be passed. If they are
       not present, raise an error.

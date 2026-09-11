@@ -6,7 +6,6 @@ import tempfile
 import time
 from copy import deepcopy
 
-import attr
 import numpy as np
 from pandas import DataFrame
 
@@ -18,52 +17,13 @@ from ..utils import (
     command_line_args,
     logger,
 )
+from ..utils.parallel import (
+    close_pool,
+    create_pool,
+    initialize_global_variables,
+    sampling_convenience_dump,
+)
 from ..utils.random import seed as set_seed
-
-
-@attr.s
-class _SamplingContainer:
-    """
-    A container class for objects that are stored independently in each thread
-    for some samplers.
-
-    A single instance of this will appear in this module that can be access
-    by the individual samplers.
-
-    This includes the:
-
-    - likelihood (bilby.core.likelihood.Likelihood)
-    - priors (bilby.core.prior.PriorDict)
-    - search_parameter_keys (list)
-    - use_ratio (bool)
-    """
-
-    likelihood = attr.ib(default=None)
-    priors = attr.ib(default=None)
-    search_parameter_keys = attr.ib(default=None)
-    use_ratio = attr.ib(default=False)
-    parameters = attr.ib(default=None)
-
-
-_sampling_convenience_dump = _SamplingContainer()
-
-
-def _initialize_global_variables(
-    likelihood,
-    priors,
-    search_parameter_keys,
-    use_ratio,
-    parameters,
-):
-    """
-    Store a global copy of the likelihood, priors, and search keys for
-    multiprocessing.
-    """
-    _sampling_convenience_dump.likelihood = likelihood
-    _sampling_convenience_dump.priors = priors
-    _sampling_convenience_dump.search_parameter_keys = search_parameter_keys
-    _sampling_convenience_dump.use_ratio = use_ratio
-    _sampling_convenience_dump.parameters = deepcopy(parameters)
 
 
 def signal_wrapper(method):
@@ -232,6 +192,7 @@ class Sampler(object):
         soft_init=False,
         exit_code=130,
         npool=1,
+        pool=None,
         **kwargs,
     ):
         self.likelihood = likelihood
@@ -245,6 +206,7 @@ class Sampler(object):
         self.injection_parameters = injection_parameters
         self.meta_data = meta_data
         self.use_ratio = use_ratio
+        self.pool = pool
         self._npool = npool
         if not skip_import_verification:
             self._verify_external_sampler()
@@ -768,41 +730,44 @@ class Sampler(object):
             raise SystemExit(self.exit_code) from cause
 
     def _close_pool(self):
-        if getattr(self, "pool", None) is not None:
+        if getattr(self, "pool", None) is not None and not getattr(
+            self, "_user_pool", True
+        ):
             logger.info("Starting to close worker pool.")
-            self.pool.close()
-            self.pool.join()
+            close_pool(self.pool)
             self.pool = None
             self.kwargs["pool"] = self.pool
             logger.info("Finished closing worker pool.")
 
     def _setup_pool(self):
-        if self.kwargs.get("pool", None) is not None:
-            logger.info("Using user defined pool.")
-            self.pool = self.kwargs["pool"]
-        elif self.npool is not None and self.npool > 1:
-            logger.info(f"Setting up multiproccesing pool with {self.npool} processes")
-            import multiprocessing
+        parameters = self.priors.sample()
 
-            self.pool = multiprocessing.Pool(
-                processes=self.npool,
-                initializer=_initialize_global_variables,
-                initargs=(
-                    self.likelihood,
-                    self.priors,
-                    self._search_parameter_keys,
-                    self.use_ratio,
-                    deepcopy(self.parameters),
-                ),
-            )
+        if hasattr(self.pool, "map"):
+            self._user_pool = True
+        elif self.npool in (1, None):
+            self._user_pool = False
         else:
-            self.pool = None
-        _initialize_global_variables(
+            self._user_pool = False
+            self.pool = create_pool(
+                likelihood=self.likelihood,
+                priors=self.priors,
+                search_parameter_keys=self._search_parameter_keys,
+                use_ratio=self.use_ratio,
+                npool=self.npool,
+                pool=self.pool,
+                parameters=parameters,
+            )
+            if self.pool is not None:
+                logger.warning(
+                    "Setting up parallel pool in sampler is deprecated. Use "
+                    "bilby.utils.parallel.bilby_pool context instead."
+                )
+        initialize_global_variables(
             likelihood=self.likelihood,
             priors=self.priors,
             search_parameter_keys=self._search_parameter_keys,
             use_ratio=self.use_ratio,
-            parameters=deepcopy(self.parameters),
+            parameters=parameters,
         )
         self.kwargs["pool"] = self.pool
 
@@ -1127,8 +1092,8 @@ class LikePriorEvaluator:
         self.periodic_set = False
 
     def _setup_periodic(self):
-        priors = _sampling_convenience_dump.priors
-        search_parameter_keys = _sampling_convenience_dump.search_parameter_keys
+        priors = sampling_convenience_dump.priors
+        search_parameter_keys = sampling_convenience_dump.search_parameter_keys
         self._periodic = [
             priors[key].boundary == "periodic" for key in search_parameter_keys
         ]
@@ -1153,21 +1118,21 @@ class LikePriorEvaluator:
         return array
 
     def logl(self, v_array):
-        priors = _sampling_convenience_dump.priors
-        likelihood = _sampling_convenience_dump.likelihood
-        search_parameter_keys = _sampling_convenience_dump.search_parameter_keys
-        parameters = _sampling_convenience_dump.parameters.copy()
+        priors = sampling_convenience_dump.priors
+        likelihood = sampling_convenience_dump.likelihood
+        search_parameter_keys = sampling_convenience_dump.search_parameter_keys
+        parameters = sampling_convenience_dump.parameters.copy()
         parameters.update({key: v for key, v in zip(search_parameter_keys, v_array)})
         if priors.evaluate_constraints(parameters) == 0:
             return np.nan_to_num(-np.inf)
-        elif _sampling_convenience_dump.use_ratio:
+        elif sampling_convenience_dump.use_ratio:
             return likelihood.log_likelihood_ratio(parameters)
         else:
             return likelihood.log_likelihood(parameters)
 
     def logp(self, v_array):
-        priors = _sampling_convenience_dump.priors
-        search_parameter_keys = _sampling_convenience_dump.search_parameter_keys
+        priors = sampling_convenience_dump.priors
+        search_parameter_keys = sampling_convenience_dump.search_parameter_keys
         params = {key: t for key, t in zip(search_parameter_keys, v_array)}
         return priors.ln_prob(params)
 

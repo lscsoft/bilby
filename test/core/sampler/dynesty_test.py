@@ -64,7 +64,7 @@ class TestDynesty(unittest.TestCase):
             skip_import_verification=True,
             **kwargs,
         )
-        bilby.core.sampler.base_sampler._initialize_global_variables(
+        bilby.core.sampler.base_sampler.initialize_global_variables(
             self.likelihood,
             self.priors,
             self.priors.keys(),
@@ -495,6 +495,7 @@ class TestReproducibility(unittest.TestCase):
             resume=False,
             dlogz=1.0,
             nlive=20,
+            sample="acceptance-walk",
             **kwargs,
         )
 
